@@ -6,47 +6,28 @@ import csv
 from apogee.tools import bitmask
 import math
 from astropy.io import fits
+import os.path
+from pathlib import Path
 
 #Calculate R-Values for given ranges
-def calcR401(x, pos1=0, pos2=401):
-        # Calculates the value of R with the given array x
-        # Returns:  The value of R for whole CCF
-        # Assupmtion: the center peak lies in CCF lag space 201
-        ccfCenter = 201
-        pos1+= 1
-        Mirror = (x[ccfCenter:pos2])[::-1]
-        sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[pos1:ccfCenter] - Mirror)**2))
-        r401 = np.max(x) / (np.sqrt(2.0) * sigmaA)
-        #print('R401 = '+str(r401))
-        return r401
-
-def calcR151(x, pos1=125, pos2=276):
-        ccfCenter = 201
-        pos1+= 1
-        Mirror = (x[ccfCenter:pos2])[::-1]
-        sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[pos1:ccfCenter] - Mirror)**2))
-        r151 = np.max(x) / (np.sqrt(2.0) * sigmaA)
-        #print('R151 = '+str(r151))
-        return r151
-
-def calcR101(x, pos1=150, pos2=251):
-        ccfCenter = 201
-        pos1+= 1
-        Mirror = (x[ccfCenter:pos2])[::-1]
-        sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[pos1:ccfCenter] - Mirror)**2))
-        r101 = np.max(x) / (np.sqrt(2.0) * sigmaA)
-        #print('R101 = '+str(r101))
-        return r101
-    
-def calcR51(x, pos1=175, pos2=226):
-        ccfCenter = 201
-        pos1+= 1
-        Mirror = (x[ccfCenter:pos2])[::-1]
-        sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[pos1:ccfCenter] - Mirror)**2))
-        r51 = np.max(x) / (np.sqrt(2.0) * sigmaA)
-        #print('R51 = '+str(r51))
-        return r51
-
+def calcR(x,pm):
+    ccfCenter = max(x)
+    primary = np.where(x == ccfCenter)
+    peak_loc = primary[0][0]
+    if peak_loc < pm: 
+        pm = peak_loc
+    if peak_loc > 401 - pm:
+        pm = 401 - peak_loc
+    if peak_loc == 0:
+        r = 0
+        return r 
+    endpoint = peak_loc+pm
+    startpoint= peak_loc-pm
+    Mirror = (x[peak_loc:endpoint])[::-1]
+    sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[startpoint:peak_loc] - Mirror)**2))
+    r = np.max(x) / (np.sqrt(2.0) * sigmaA)
+    return r
+#Calculate the bisector points for a CCF (uses 4 points)
 def bisector(xccf,yccf):
     height = max(yccf) - min(yccf)
     slices = height/4.0
@@ -97,7 +78,7 @@ def bisector(xccf,yccf):
         #x_bisector = 0.0
         #y_bisector = 0.0
         #error = np.vstack([x_bisector,y_bisector])
-        return(error)
+        #return(error)
 
 def xrange(x_bisector):
     #print(x_bisector)
@@ -108,6 +89,7 @@ def xrange(x_bisector):
 This function was being used for finding the width of a CCF by locating the maxima, find the midpoint (y-direction),
 and take the difference in lag space (x-direction) of the indicides that told where the sides of the CCF was.
 The later steps still need to be implimented. 
+'''
 '''
 def FindMaxima(xccf,CCF,peak_loc):
     thresh_down = 1
@@ -139,6 +121,7 @@ def FindMaxima(xccf,CCF,peak_loc):
         peak_high = n_lag-1
         
     walk[peak_low:peak_high] = 1
+    ''';
 
 #Calculate the R-ratios for the likely_binary function
 def r_ratio(r51,r151,r101):
@@ -149,7 +132,7 @@ def r_ratio(r51,r151,r101):
         ratios = [round(R1_ratio,3),round(R2_ratio,3)]
         return ratios
 
-def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr) # cuts to identify SB2s from Kevin's IDL Routine
+def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
     min_r51 = r51
     min_r101 = r101
     min_r151 = r151
@@ -180,67 +163,39 @@ with open('DR14_Stats_Catalog.csv','w') as output:
     column = ['Location_ID','Apogee_ID','x_range','R51','R101','R151','R401','R151/R101','R101/R51','Visit']
     writer = csv.DictWriter(output,delimiter='\t',fieldnames=column)
     writer.writeheader()
-    
     for i in range(len(locationIDs)):
         locationID = locationIDs[i]
         apogeeID = apogeeIDs[i]
-        path = '/Volumes/coveydata-4/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
-        #print(len(path))
-        if len(path) == 129:
-            data = fits.open(path)
-            point = data[9]
-            xccf = point.data[0][32]
-            CCF = point.data[0][27]
-            HDU0 = fits.getheader(path,0)
-            nvisits = HDU0['NVISITS']
-            for visit in range(0,nvisits):
-                #snr = HDU0['SNVIS'+str(visit+2)]
-                if nvisits != 1:
-                    ccf = CCF[visit+2]
-                    nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
-                    if nonzeroes >= 1:
-                        bs_pt = bisector(xccf, ccf)
-                        x_range = xrange(bs_pt[0])
-                        R401 = calcR401(ccf)
-                        R151 = calcR151(ccf)
-                        R101 = calcR101(ccf)
-                        R51 = calcR51(ccf)
-                        Ratios = r_ratio(R51,R151,R101)
-                        r1 = Ratios[0]
-                        r2 = Ratios[1]
-                        # Output file onto CoveyData Server. Name: DR14_Stats_Catalog.csv 
-                        # This file will hold all the stats for every visit for each star in DR14.
-                        #Path: /Volumes/CoveyData-4/APOGEE_Spectra/APOGEE_DR14/BinaryID/
-                        writer.writerow({'Location_ID':locationID,'Apogee_ID':apogeeID,'x_range':round(x_range,3),
-                                         'R51':round(R51,3),'R101':round(R101,3),'R151':round(R151,3),
-                                         'R401':round(R401,3),'R151/R101':r1,'R101/R51':r2,'Visit':visit})
-        else:
-            path = '/Volumes/coveydata-4/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStarC-r8-'+str(apogeeID)+'.fits'
-            data = fits.open(path)
-            print('I am apStarC file!')
-            point = data[9]
-            xccf = point.data[0][32]
-            CCF = point.data[0][27]
-            HDU = fits.getheader(path,0)
-            nvisits = HDU0['NVISITS']
-            for visit in range(0,nvisits):
-                #snr = HDU['SNVIS'+str(visit+2)]
-                if nvisits != 1:
-                    ccfs = CCF[visit+2]
-                    nonzero = np.count_nonzero(ccfs)
-                    if nonzero >= 1:
-                        bs_pt = bisector(xccf, ccfs)
-                        x_range = xrange(bs_pt[0])
-                        R401 = calcR401(ccfs)
-                        R151 = calcR151(ccfs)
-                        R101 = calcR101(ccfs)
-                        R51 = calcR51(ccfs)
-                        Ratios = r_ratio(R51,R151,R101)
-                        r1 = Ratios[0]
-                        r2 = Ratios[1]
-                        writer.writerow({'Location_ID':locationID,'Apogee_ID':apogeeID,'x_range':round(x_range,3),
-                                         'R51':round(R51,3),'R101':round(R101,3),'R151':round(R151,3),
-                                         'R401':round(R401,3),'R151/R101':r1,'R101/R51':r2,'Visit':visit})
+        print(i,locationID,apogeeID)
+        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        try: 
+            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+    
+        except:
+            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStarC-r8-'+str(apogeeID)+'.fits'
+        #print(path)
+        data = fits.open(path)
+        point = data[9]
+        xccf = point.data[0][32]
+        CCF = point.data[0][27]
+        HDU0 = fits.getheader(path,0)
+        nvisits = HDU0['NVISITS']
+        for visit in range(0,nvisits):
+            if nvisits != 1:
+                ccf = CCF[visit+2]
+                nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
+                if nonzeroes >= 1:
+                    bs_pt = bisector(xccf, ccf)
+                    x_range = xrange(bs_pt[0])
+                    R151 = calcR(ccf,75)
+                    R101 = calcR(ccf,50)
+                    R51 = calcR(ccf,25)
+                    Ratios = r_ratio(R51,R151,R101)
+                    r1 = Ratios[0]
+                    r2 = Ratios[1]
+                    writer.writerow({'Location_ID':locationID,'Apogee_ID':apogeeID,'x_range':round(x_range,3),
+                                         'R51':round(R51,3),'R101':round(R101,3),'R151':round(R151,3),'R151/R101':r1,'R101/R51':r2,'Visit':visit})
+
 
 # Read in the file and find how many are SB2s. 
 stats = pd.read_csv('DR14_Stats_Catalog.csv',delimiter='/t')
