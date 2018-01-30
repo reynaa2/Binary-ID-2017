@@ -3,7 +3,7 @@ import apogee.tools.read as apread
 from matplotlib import pyplot as plt
 import pandas as pd
 import csv
-from apogee.tools import bitmask
+#from apogee.tools import bitmask  #commenting out because not used and kevin may be a few versions behind
 import math
 from astropy.io import fits
 import os.path
@@ -139,6 +139,8 @@ bin_xr = []
 binR1 = []
 binR2 = []
 Visit = []
+#create an array for storing HJDs
+HJDs = []
 loc = []
 apo= []
 
@@ -154,10 +156,18 @@ for j in range(len(binLocID)):
             CCF = point.data[0][27]
             HDU0 = fits.getheader(path,0)
             nvisits = HDU0['NVISITS']
+            #edit this to more seamlessly handle single-visit sources (KRC had one single-visit source fail)
             for visit in range(0,nvisits):
-                    ccf = CCF[visit+2]
+                    if nvisits == 1:
+                        #print(CCF)
+                        ccf = CCF
+                    else:
+                        ccf = CCF[visit+2]
+                    #print(ccf)
                     snr = HDU0['SNRVIS'+str(visit+1)]
-                    nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
+                    #read in HJD identifier to more uniquely identify individual visits
+                    HJD = HDU0['HJD'+str(visit+1)]
+                   nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
                     if nonzeroes >= 1:
                         loc.append(locationID)
                         apo.append(apogeeID)
@@ -177,6 +187,9 @@ for j in range(len(binLocID)):
                         binR1.append(r1)
                         binR2.append(r2)
                         Visit.append(visit)
+                        #store HJDs in an array
+                        HJDs.append(HJD)
+
                     else:
                         pass
 
@@ -196,6 +209,8 @@ cols = ['LocationID', 'ApogeeID']
 df = pd.DataFrame(columns = cols)
 df['LocationID'] = loc
 df['ApogeeID'] = apo
+#add HJD info to output table
+df['HJD'] = HJDs
 df['log(R51)'] = binR51
 df['log(R101)'] = binR101
 df['log(R151)'] = binR151
