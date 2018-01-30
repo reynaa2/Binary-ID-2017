@@ -3,7 +3,6 @@ import apogee.tools.read as apread
 from matplotlib import pyplot as plt
 import pandas as pd
 import csv
-#from apogee.tools import bitmask  #commenting out because not used and kevin may be a few versions behind
 import math
 from astropy.io import fits
 import os.path
@@ -74,11 +73,10 @@ def bisector(xccf,yccf):
         x_bisector.append(x_3)
 
         bisector_pts = np.vstack([x_bisector,y_bisector])
-        print(bisector_pts)
+        #print(bisector_pts)
         return(bisector_pts)
 
 def xrange(x_bisector):
-    #print(x_bisector)
     xr = max(x_bisector) - min(x_bisector)
     xR = abs(xr)
     return xR
@@ -89,9 +87,18 @@ def r_ratio(r51,r151,r101):
         #print(r51, r101,r151)
         r1_ratio = r151/r101
         r2_ratio = r101/r51
-        R1_ratio = math.log10(r1_ratio)
-        R2_ratio = math.log10(r2_ratio)
-        ratios = [round(R1_ratio,3),round(R2_ratio,3)]
+        ratios = [round(r1_ratio,4),round(r2_ratio,4)]
+        #R1_ratio = math.log10(r1_ratio)
+        #R2_ratio = math.log10(r2_ratio)
+        #if R1_ratio == '        nan':
+            #print('R1 bad')
+            #R1_ratio = 9000
+            #ratios = [round(R1_ratio,4),round(R2_ratio,4)]
+       # if R2_ratio == '        nan':
+            #R2_ratio = 9000
+            #print('R2 bad')
+            #ratios = [round(R1_ratio,4),round(R2_ratio,4)]
+        #print(ratios)
         return ratios
 
 def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
@@ -145,10 +152,10 @@ HJDs = []
 loc = []
 apo= []
 
-#for j in range(len(binLocID)):
-for j in range(2):
+for j in range(len(binLocID)):
         locationID = binLocID[j]
         apogeeID = binApoID[j]
+        #File path to open .fits 
         my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
             path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
@@ -161,11 +168,9 @@ for j in range(2):
             #edit this to more seamlessly handle single-visit sources (KRC had one single-visit source fail)
             for visit in range(0,nvisits):
                     if nvisits == 1:
-                        #print(CCF)
                         ccf = CCF
                     else:
                         ccf = CCF[visit+2]
-                    #print(ccf)
                     snr = HDU0['SNRVIS'+str(visit+1)]
                     #read in HJD identifier to more uniquely identify individual visits
                     HJD = HDU0['HJD'+str(visit+1)]
@@ -179,18 +184,20 @@ for j in range(2):
                         y_bs = bs_pt[1]
                         x_range = xrange(bs_pt[0])
                         #Plotting CCFs
-                        plt.plot(xccf,ccf, label='Visit: '+str(visit))
-                        plt.plot(x_bs,y_bs,'o')
-                        plt.legend(loc='upper right')
-                        plt.show()
+                        #plt.plot(xccf,ccf, label='Visit: '+str(visit))
+                        #plt.plot(x_bs,y_bs,'o')
+                        #plt.legend(loc='upper right')
+                        #plt.show()
                         bin_xr.append(x_range)
                         bin_SNR.append(snr) 
                         R151 = calcR(ccf,75)
                         R101 = calcR(ccf,50)
                         R51 = calcR(ccf,25)
+                        #Ensure 3 decimal places reported in .csv
                         R151s.append(round(R151,3))
                         R101s.append(round(R101,3))
                         R51s.append(round(R51,3))
+                        #Generate the Ratios 
                         Ratios = r_ratio(R51,R151,R101)
                         r1 = Ratios[0]
                         r2 = Ratios[1]
@@ -206,13 +213,19 @@ for j in range(2):
         except FileNotFoundError:
             pass
 
-#Binary arrays 
+#Binary arrays that also convert arrays into log space
 binR51 = arrays(R51s)
 binR101 = arrays(R101s)
 binR151 = arrays(R151s)
 BinR1 = arrays(binR1)
 BinR2 = arrays(binR2)
 binxrange = arrays(bin_xr)
+
+#Make the nan a big value
+#Run on all DR14 (with new format for HJD)
+#Push to GitHub -> DR14 
+#Move to updating the script to impliment the cuts which needs to read in HJD
+#Look at plots for sanity check
 
 #Write out the results to a file via pandas
 cols = ['LocationID', 'ApogeeID']
