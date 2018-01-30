@@ -32,7 +32,8 @@ def calcR(x,pm):
 def bisector(xccf,yccf):
     height = max(yccf) - min(yccf)
     slices = height/4.0
-    bounds = np.arange(min(yccf),height,slices)
+    new_max = max(yccf)+0.05
+    bounds = np.linspace(min(yccf),new_max,5)
     if len(bounds) != 0:
         z1 = (bounds[0] + bounds[1])/2.0
         z2 = (bounds[1] + bounds[2])/2.0
@@ -73,7 +74,7 @@ def bisector(xccf,yccf):
         x_bisector.append(x_3)
 
         bisector_pts = np.vstack([x_bisector,y_bisector])
-        #print(bisector_pts)
+        print(bisector_pts)
         return(bisector_pts)
 
 def xrange(x_bisector):
@@ -144,12 +145,13 @@ HJDs = []
 loc = []
 apo= []
 
-for j in range(len(binLocID)):
+#for j in range(len(binLocID)):
+for j in range(2):
         locationID = binLocID[j]
         apogeeID = binApoID[j]
-        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -167,12 +169,20 @@ for j in range(len(binLocID)):
                     snr = HDU0['SNRVIS'+str(visit+1)]
                     #read in HJD identifier to more uniquely identify individual visits
                     HJD = HDU0['HJD'+str(visit+1)]
-                   nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
+                    nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
                     if nonzeroes >= 1:
                         loc.append(locationID)
                         apo.append(apogeeID)
                         bs_pt = bisector(xccf, ccf)
+                        #split up 2D array to get x and y coord. for bisector pts
+                        x_bs = bs_pt[0]
+                        y_bs = bs_pt[1]
                         x_range = xrange(bs_pt[0])
+                        #Plotting CCFs
+                        plt.plot(xccf,ccf, label='Visit: '+str(visit))
+                        plt.plot(x_bs,y_bs,'o')
+                        plt.legend(loc='upper right')
+                        plt.show()
                         bin_xr.append(x_range)
                         bin_SNR.append(snr) 
                         R151 = calcR(ccf,75)
