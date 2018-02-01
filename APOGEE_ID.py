@@ -84,21 +84,11 @@ def xrange(x_bisector):
 
 #Find the R ratios of the SB2s
 def r_ratio(r51,r151,r101):
-        #print(r51, r101,r151)
         r1_ratio = r151/r101
         r2_ratio = r101/r51
-        ratios = [round(r1_ratio,4),round(r2_ratio,4)]
-        #R1_ratio = math.log10(r1_ratio)
-        #R2_ratio = math.log10(r2_ratio)
-        #if R1_ratio == '        nan':
-            #print('R1 bad')
-            #R1_ratio = 9000
-            #ratios = [round(R1_ratio,4),round(R2_ratio,4)]
-       # if R2_ratio == '        nan':
-            #R2_ratio = 9000
-            #print('R2 bad')
-            #ratios = [round(R1_ratio,4),round(R2_ratio,4)]
-        #print(ratios)
+        R1_ratio = math.log10(r1_ratio)
+        R2_ratio = math.log10(r2_ratio)
+        ratios = [round(R1_ratio,4),round(R2_ratio,4)]
         return ratios
 
 def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
@@ -138,23 +128,31 @@ for i in range(len(ids)):
         binApoID.append(apoID[i])
         binLocID.append(locID[i])
 
-#Run the routine on the identified binaries from IDl routine (the training set)
-bin_SNR = []
-R151s = []
-R101s = []
-R51s = []
-bin_xr = []
-binR1 = []
-binR2 = []
+
+#Create arrays for storing values and then to output into a .csv file
+SNR = []
+oldR151 = []
+oldR101 = []
+oldR51 = []
+xr = []
+R1 = []
+R2 = []
 Visit = []
 #create an array for storing HJDs
 HJDs = []
 loc = []
 apo= []
 
-for j in range(len(binLocID)):
-        locationID = binLocID[j]
-        apogeeID = binApoID[j]
+# Read in allStar list for DR14 to get .fits of all stars in APOGEE
+allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+locationIDs = allStarDR14['LOCATION_ID']
+apogeeIDs = allStarDR14['APOGEE_ID']
+apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+
+#Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
+for j in range(len(locationIDs)):
+        locationID = locationIDs[j]
+        apogeeID = apogeeIDs[j]
         #File path to open .fits 
         my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
@@ -188,21 +186,21 @@ for j in range(len(binLocID)):
                         #plt.plot(x_bs,y_bs,'o')
                         #plt.legend(loc='upper right')
                         #plt.show()
-                        bin_xr.append(x_range)
-                        bin_SNR.append(snr) 
+                        xr.append(x_range)
+                        SNR.append(snr) 
                         R151 = calcR(ccf,75)
                         R101 = calcR(ccf,50)
                         R51 = calcR(ccf,25)
                         #Ensure 3 decimal places reported in .csv
-                        R151s.append(round(R151,3))
-                        R101s.append(round(R101,3))
-                        R51s.append(round(R51,3))
+                        oldR151.append(round(R151,3))
+                        oldR101.append(round(R101,3))
+                        oldR51.append(round(R51,3))
                         #Generate the Ratios 
                         Ratios = r_ratio(R51,R151,R101)
                         r1 = Ratios[0]
                         r2 = Ratios[1]
-                        binR1.append(r1)
-                        binR2.append(r2)
+                        R1.append(r1)
+                        R2.append(r2)
                         Visit.append(visit)
                         #store HJDs in an array
                         HJDs.append(HJD)
@@ -214,18 +212,28 @@ for j in range(len(binLocID)):
             pass
 
 #Binary arrays that also convert arrays into log space
-binR51 = arrays(R51s)
-binR101 = arrays(R101s)
-binR151 = arrays(R151s)
-BinR1 = arrays(binR1)
-BinR2 = arrays(binR2)
-binxrange = arrays(bin_xr)
+newR51 = arrays(R51)
+newR101 = arrays(R101)
+newR151 = arrays(R151)
+#BinR1 = arrays(binR1)
+#BinR2 = arrays(binR2)
+Xrange = arrays(xr)
 
-#Make the nan a big value
+#Find and replace all nan values with 9000
+x_ranges = [9 if math.isnan(x) else x for x in Xrange]
+x_range = [9 if math.isinf(y) else y for y in x_ranges]
+
+#To not over account for log space converstions, just convert the ratios into arrays 
+RatioR1 = np.array(R1)
+RatioR2 = np.array(R2)
+newR1 = RatioR1.astype(np.float)
+newR2 = RatioR2.astype(np.float)
+
+#Make the nan a big value (resolved!)
 #Run on all DR14 (with new format for HJD)
-#Push to GitHub -> DR14 
-#Move to updating the script to impliment the cuts which needs to read in HJD
-#Look at plots for sanity check
+#Push to GitHub -> DR14 (Resolved!)
+#Move to updating the script to impliment the cuts which needs to read in HJD (Resolved!)
+#Look at plots for sanity check (In progress!)
 
 #Write out the results to a file via pandas
 cols = ['LocationID', 'ApogeeID']
@@ -234,9 +242,12 @@ df['LocationID'] = loc
 df['ApogeeID'] = apo
 #add HJD info to output table
 df['HJD'] = HJDs
-df['log(R51)'] = binR51
-df['log(R101)'] = binR101
-df['log(R151)'] = binR151
-df['log(xr)'] = binxrange
+df['log(R51)'] = newR51
+df['log(R101)'] = newR101
+df['log(R151)'] = newR151
+df['log(xr)'] = x_range
+df['log(Ratio1)'] = newR1
+df['log(Ratio2)'] = newR2
 
-df.to_csv('Binary_Stats.csv')
+#df.to_csv('Binary_Stats.csv')
+df.to_csv('DR14_Stats_Catalog.csv')
