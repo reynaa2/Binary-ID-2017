@@ -22,14 +22,22 @@ def matches(xx,y,r51,r101,r151,xr,R1,R2):
     matchR2 = []
     matchlocid = []
     matchapoid = []
-    #Command for finding unique values
+    #Command for finding unique values [in this case, of APOGEE IDs]
     uniqueID = np.unique(y)
+
+    ## Do operation [of what kind?] on each star (as identified by unique APOGEE IDs)
     for i in range(len(uniqueID)):
+        #find indices that identify visits to star w/ uniqueID[i]
         newID = np.where(y == uniqueID[i])
+        #find first object that satisfies this criteria?  Or multiple objects?
         newer = newID[0]
+        #now save r51 values associated with one or more objects?
         small = r51[newer]
+        #find minimum of r51 values selected above
         little = min(small)
+        #round the R51 value to four digits?
         x = round(little,4)
+        #save the min R51 value, and the APOGEE ID and Location ID associated for this object
         match51.append(x)
         matchapoid.append(y[newer])
         matchlocid.append(xx[newer])
@@ -90,6 +98,8 @@ def idSB2(R51,R101,R151,xr,ratio1,ratio2):
                              (0.6))
     return likely_sb2s
 
+## THIS IS WHERE THE SCRIPT ACTUALLY STARTS
+
 #Read in csv Dr14_Stats_Catalog and require targets to pass a SNR > 10
 dr14 = pd.read_csv('DR14_Stats_Catalog2.csv')
 locID = dr14['LocationID']
@@ -114,6 +124,7 @@ R2 = []
 vis = []
 xr = []
 
+#creating arrays that only hold objects that pass SNR > 10 requirement 
 for i in range(len(locID)):
     if snr[i] > 10:
         locationid.append(locID[i])
@@ -126,7 +137,7 @@ for i in range(len(locID)):
         vis.append(visit[i])
         xr.append(xranges[i])
 
-#Turn these lists above to arrays by passing them to the 'arrays' function
+#Turn these lists above to arrays by passing them to the 'arrays' function (which converts to type float?  Maybe not appropriate for LocID and ApoID?)
 LocID = arrays(locationid)
 ApoID = arrays(apogeeid)
 r_51 = arrays(r51)
