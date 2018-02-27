@@ -17,15 +17,16 @@ def calcR(x,pm):
         pm = peak_loc
     if peak_loc > 401 - pm:
         pm = 401 - peak_loc
-    if peak_loc == 0:
-        r = 1000
-        return r 
+    if peak_loc == 0: #Give false data that is easily distinguished as such
+        r = 1000 
+        ccfCenter = 1000 #need to add a condition for peak too
+        return r, ccfCenter
     endpoint = peak_loc+pm
     startpoint= peak_loc-pm
     Mirror = (x[peak_loc:endpoint])[::-1]
     sigmaA = np.sqrt(1.0 / (2.0 * len(Mirror)) * np.sum((x[startpoint:peak_loc] - Mirror)**2))
     r = np.max(x) / (np.sqrt(2.0) * sigmaA)
-    return r
+    return r, ccfCenter
 
 #Calculate the bisector points for a CCF (uses 4 points)
 def bisector(xccf,yccf):
@@ -128,8 +129,10 @@ for i in range(len(ids)):
         binApoID.append(apoID[i])
         binLocID.append(locID[i])
 
+#Placed main routine in a function to compact space.
+#def main_routine(apogeeID,locationID):
 
-#Create arrays for storing values and then to output into a .csv file
+    #Create arrays for storing values and then to output into a .csv file
 SNR = []
 oldR151 = []
 oldR101 = []
@@ -138,6 +141,7 @@ xr = []
 R1 = []
 R2 = []
 Visit = []
+peak_value = []
 #create an array for storing HJDs
 HJDs = []
 loc = []
@@ -150,13 +154,15 @@ apogeeIDs = allStarDR14['APOGEE_ID']
 apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
-for j in range(len(locationIDs)):
+#for j in range(len(locationIDs)):
+for j in range(len(locationIDs[0:1000])):
+        print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
         #File path to open .fits 
-        my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -180,7 +186,8 @@ for j in range(len(locationIDs)):
                         #split up 2D array to get x and y coord. for bisector pts
                         x_bs = bs_pt[0]
                         y_bs = bs_pt[1]
-                        x_range = xrange(bs_pt[0])
+                        #x_range = xrange(bs_pt[0])
+                        x_range = xrange(x_bs)
                         #Plotting CCFs
                         #plt.plot(xccf,ccf, label='Visit: '+str(visit))
                         #plt.plot(x_bs,y_bs,'o')
@@ -189,14 +196,17 @@ for j in range(len(locationIDs)):
                         xr.append(x_range)
                         SNR.append(snr) 
                         R151 = calcR(ccf,75)
+                        partr151 = R151[1]
                         R101 = calcR(ccf,50)
                         R51 = calcR(ccf,25)
                         #Ensure 3 decimal places reported in .csv
-                        oldR151.append(round(R151,3))
-                        oldR101.append(round(R101,3))
-                        oldR51.append(round(R51,3))
+                        oldR151.append(round(R151[0],3))
+                        oldR101.append(round(R101[0],3))
+                        oldR51.append(round(R51[0],3))
+                        # Add to list of CCF peak Values
+                        peak_value.append(partr151)
                         #Generate the Ratios 
-                        Ratios = r_ratio(R51,R151,R101)
+                        Ratios = r_ratio(R51[0],R151[0],R101[0])
                         r1 = Ratios[0]
                         r2 = Ratios[1]
                         R1.append(r1)
@@ -211,35 +221,54 @@ for j in range(len(locationIDs)):
         except FileNotFoundError:
             pass
 
-#Binary arrays that also convert arrays into log space
+print(peak_val)
+#Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(R51)
 newR101 = arrays(R101)
 newR151 = arrays(R151)
 #BinR1 = arrays(binR1)
 #BinR2 = arrays(binR2)
 Xrange = arrays(xr)
+peak_val = arrays(peak_value)
 
-#Find and replace all nan values with 9000
+
+#Check the lengths of the output arrays
+print(len(newR51))
+print(len(newR101))
+print(len(newR151))
+print(len(Xrange))
+print(len(peak_val))
+
+#Find and replace all nan values with 9 which will be prominent in log space
 x_ranges = [9 if math.isnan(x) else x for x in Xrange]
 x_range = [9 if math.isinf(y) else y for y in x_ranges]
+
+#Convert snr into an array for panda writing
+SNRs = np.asarray(snr)
+SNRS = SNRs.astype(np.float)
 
 #To not over account for log space converstions, just convert the ratios into arrays 
 RatioR1 = np.array(R1)
 RatioR2 = np.array(R2)
 newR1 = RatioR1.astype(np.float)
 newR2 = RatioR2.astype(np.float)
+print(len(newR1))
+print(len(newR2))
 
 #Make the nan a big value (resolved!)
 #Run on all DR14 (with new format for HJD)
 #Push to GitHub -> DR14 (Resolved!)
 #Move to updating the script to impliment the cuts which needs to read in HJD (Resolved!)
-#Look at plots for sanity check (In progress!)
+#Look at plots for sanity check (Resolved!)
 
 #Write out the results to a file via pandas
 cols = ['LocationID', 'ApogeeID']
 df = pd.DataFrame(columns = cols)
 df['LocationID'] = loc
 df['ApogeeID'] = apo
+df['SNR'] = SNRS
+df['Visit'] = Visit
+
 #add HJD info to output table
 df['HJD'] = HJDs
 df['log(R51)'] = newR51
@@ -248,6 +277,9 @@ df['log(R151)'] = newR151
 df['log(xr)'] = x_range
 df['log(Ratio1)'] = newR1
 df['log(Ratio2)'] = newR2
+df['Peak_value'] = peak_val
 
 #df.to_csv('Binary_Stats.csv')
-df.to_csv('DR14_Stats_Catalog.csv')
+df.to_csv('DR14_Stats_Catalog2a.csv')
+
+     
