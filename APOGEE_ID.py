@@ -132,7 +132,7 @@ for i in range(len(ids)):
 #Placed main routine in a function to compact space.
 #def main_routine(apogeeID,locationID):
 
-    #Create arrays for storing values and then to output into a .csv file
+#Create arrays for storing values and then to output into a .csv file
 SNR = []
 oldR151 = []
 oldR101 = []
@@ -155,7 +155,7 @@ apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 #for j in range(len(locationIDs)):
-for j in range(len(locationIDs[0:1000])):
+for j in range(len(locationIDs)):
         print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
@@ -221,30 +221,25 @@ for j in range(len(locationIDs[0:1000])):
         except FileNotFoundError:
             pass
 
-print(peak_val)
+#Find and replace all nan values with 9 which will be prominent in log space
+x_ranges = [9 if math.isnan(x) else x for x in xr]
+Xranges = [9 if math.isinf(y) else y for y in x_ranges]
+
 #Have DR14 sent to arrays function that also convert arrays into log space
-newR51 = arrays(R51)
-newR101 = arrays(R101)
-newR151 = arrays(R151)
+newR51 = arrays(oldR51)
+newR101 = arrays(oldR101)
+newR151 = arrays(oldR151)
 #BinR1 = arrays(binR1)
 #BinR2 = arrays(binR2)
-Xrange = arrays(xr)
+new_Xrange = arrays(Xranges)
 peak_val = arrays(peak_value)
 
-
-#Check the lengths of the output arrays
-print(len(newR51))
-print(len(newR101))
-print(len(newR151))
-print(len(Xrange))
-print(len(peak_val))
-
 #Find and replace all nan values with 9 which will be prominent in log space
-x_ranges = [9 if math.isnan(x) else x for x in Xrange]
-x_range = [9 if math.isinf(y) else y for y in x_ranges]
+#x_ranges = [9 if math.isnan(x) else x for x in Xrange]
+#new_Xranges = [9 if math.isinf(y) else y for y in x_ranges]
 
 #Convert snr into an array for panda writing
-SNRs = np.asarray(snr)
+SNRs = np.array(SNR)
 SNRS = SNRs.astype(np.float)
 
 #To not over account for log space converstions, just convert the ratios into arrays 
@@ -252,8 +247,19 @@ RatioR1 = np.array(R1)
 RatioR2 = np.array(R2)
 newR1 = RatioR1.astype(np.float)
 newR2 = RatioR2.astype(np.float)
-print(len(newR1))
-print(len(newR2))
+
+#Check the lengths of the arrays now that we have extracted undesired values
+#print('The R values: ')
+#print(len(newR51))
+#print(len(newR101))
+#print(len(newR151))
+#print('The other params: ')
+#print(len(new_Xranges))
+#print(len(SNRS))
+#print(len(newR1))
+#print(len(newR2))
+#print(len(peak_val))
+
 
 #Make the nan a big value (resolved!)
 #Run on all DR14 (with new format for HJD)
@@ -280,6 +286,6 @@ df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
 #df.to_csv('Binary_Stats.csv')
-df.to_csv('DR14_Stats_Catalog2a.csv')
+df.to_csv('DR14StatsCatalog.csv')
 
      
