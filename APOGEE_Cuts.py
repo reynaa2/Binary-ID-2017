@@ -13,7 +13,12 @@ Open DR14_Stats_Catalog.csv. Over all visits for a star we will need to:
 3. Find the minimum R ratios: R 151/R 101 and R 101/R 51
  '''
   
+'''
+NOTE: There is an unknown KeyError:2 and I am not sure why... try to investigate into this...
+'''
+
 def matches(xx,y,r51,r101,r151,xr,R1,R2):
+   # Generate empty lists to hold values of matched APOGEE IDs
     match51 = []
     match101 = []
     match151 = []
@@ -22,26 +27,37 @@ def matches(xx,y,r51,r101,r151,xr,R1,R2):
     matchR2 = []
     matchlocid = []
     matchapoid = []
-    #Command for finding unique values [in this case, of APOGEE IDs]
+    #Command for finding unique values (in this case, APOGEE IDs)
     uniqueID = np.unique(y)
 
-    ## Do operation [of what kind?] on each star (as identified by unique APOGEE IDs)
-    for i in range(len(uniqueID)):
-        #find indices that identify visits to star w/ uniqueID[i]
+    # Loop through all the unique apogeeIDs to find the smallest R values, largest x-range, and the apogee and location IDs
+    # that correspond to these values
+    for i in range(len(uniqueID[0:20])):
+        print('Star #: '+str(i))
+        # find indicies that identify visits to star w/ uniqueID[i]
         newID = np.where(y == uniqueID[i])
-        #find first object that satisfies this criteria?  Or multiple objects?
+        # find objects that satisfies criteria of having matched apogee IDs
         newer = newID[0]
-        #now save r51 values associated with one or more objects?
-        small = r51[newer]
-        #find minimum of r51 values selected above
+        # Plug in found indicies (from newer) and call R 51 values and the apogee and location IDs that correspond to those indicies
+        small = r51[newer] 
+        y2 = y[newer]
+        x2 = xx[newer]
+        # Take smallest R 51 value of the list found above
         little = min(small)
-        #round the R51 value to four digits?
+        # Report back the apogee and location ID that correspond with the smallest R 51 value
+        loc_of_small = np.where(small == little)
+        #Extract value from tuple array
+        small_loc = loc_of_small[0][0]
+        # Round R 51 smallest value to 4 digits
         x = round(little,4)
-        #save the min R51 value, and the APOGEE ID and Location ID associated for this object
+        # Append the smallest R 51 values to empty list identified above as match51
         match51.append(x)
-        matchapoid.append(y[newer])
-        matchlocid.append(xx[newer])
+        print(x2[small_loc]) ##  WHY IS THIS NOT WORKING??! ###
+        # Save associated apogee ID and location ID for this object
+        matchapoid.append(y2[small_loc])
+        matchlocid.append(x2[small_loc])
 
+    # Process above is repeated for other empty lists
     for j in range(len(uniqueID)):
         new = np.where(y == uniqueID[j])
         element = new[0]
@@ -90,18 +106,21 @@ def arrays(x):
     return new
 
 # From Cuts.py, the parameters for an SB2 to be identified have been quantified. This function holds those values
+# Also, this function will return the indicies of where the targets meet these requirements.
 def idSB2(R51,R101,R151,xr,ratio1,ratio2):
     likely_sb2s = np.where((0.7 < R101 < 1.2 and 0.8 < ratio1 < 0.95) or 
                              (0.6 < R51 < 0.70 and 0.80 < R151 < 0.95) or 
                              (0.6 < xr < 1.1 and 0.10 < ratio2 < 0.15) or
-                             (0.6 < xr < 1.1 and 0.08 < ratio1 < 0.090) or 
-                             (0.6))
+                             (0.6 < xr < 1.1 and 0.08 < ratio1 < 0.090))# or 
+                             #(0.6 <)) #FIX ME
+                             # Incorporate the peak_loc requirement as well. Kevin has this as peak_401 > -0.5
     return likely_sb2s
 
-## THIS IS WHERE THE SCRIPT ACTUALLY STARTS
+
+####### THIS IS WHERE THE ROUTINE BEGINS! THIS IS WHERE THE TOTAL .CSV FILE OF DR14 AND STATS ARE READ IN ########
 
 #Read in csv Dr14_Stats_Catalog and require targets to pass a SNR > 10
-dr14 = pd.read_csv('DR14_Stats_Catalog2.csv')
+'''dr14 = pd.read_csv('DR14_Stats_Catalog2b.csv')
 locID = dr14['LocationID']
 apoID = dr14['ApogeeID']
 visit = dr14['Visit']
@@ -111,8 +130,42 @@ R101 = dr14['log(R101)']
 R151 = dr14['log(R151)']
 ratio1 = dr14['log(Ratio1)']
 ratio2 = dr14['log(Ratio2)']
-xranges = dr14['log(xr)']
+xranges = dr14['log(xr)'] '''
 
+## FOR TESTING, USE BINARY_STATS.CSV ####
+data = pd.read_csv('Binary_Stats.csv')
+locID = data['LocationID']
+apoID = data['ApogeeID']
+#visit = data['Visit']
+#snr = data['SNR']
+R51 = data['log(R51)']
+R101 = data['log(R101)']
+R151 = data['log(R151)']
+ratio1 = data['log(Ratio1)']
+ratio2 = data['log(Ratio2)']
+xranges = data['log(xr)'] 
+
+### TEST FOR BINARIES ONLY ####
+r_51 = arrays(R51)
+r_101 = arrays(R101)
+r_151 = arrays(R151)
+ratio_1 = arrays(ratio1)
+ratio_2 = arrays(ratio2)
+x_range = arrays(xranges)
+
+m = matches(locID,apoID,r_51,r_101,r_151,x_range,ratio_1,ratio_2)
+min51 = arrays(m[0])
+min101 =arrays(m[1])
+min151 = arrays(m[2])
+maxXR = arrays(m[3])
+minratio1 = arrays(m[4])
+minratio2 = arrays(m[5])
+matchedapoid = np.array(m[6])
+matchedlocid = np.array(m[7])
+
+
+
+'''
 # Create new lists to be turned into arrays if they pass the SNR > 10 resuirement
 locationid = []
 apogeeid = []
@@ -124,7 +177,7 @@ R2 = []
 vis = []
 xr = []
 
-#creating arrays that only hold objects that pass SNR > 10 requirement 
+# Create new lists to only hold objects if they pass the SNR > 10 resuirement
 for i in range(len(locID)):
     if snr[i] > 10:
         locationid.append(locID[i])
@@ -137,9 +190,11 @@ for i in range(len(locID)):
         vis.append(visit[i])
         xr.append(xranges[i])
 
-#Turn these lists above to arrays by passing them to the 'arrays' function (which converts to type float?  Maybe not appropriate for LocID and ApoID?)
-LocID = arrays(locationid)
-ApoID = arrays(apogeeid)
+# Make an array of strings for apogee and location IDs
+LocID = np.array(locationid)
+ApoID = np.array(apogeeid)
+
+#Turn these lists above to arrays by passing them to the 'arrays' function
 r_51 = arrays(r51)
 r_101 = arrays(r101)
 r_151 = arrays(r151)
@@ -150,17 +205,17 @@ x_range = arrays(xr)
 
 #Find the minimum R values and the maximum x-range values of a given star. 
 # Pass each array given above into the 'matches' definition.  
-m = matches(LocID,ApoID,r_51,r_101,r_151,x_range)
+m = matches(LocID,ApoID,r_51,r_101,r_151,x_range,ratio_1,ratio_2)
 min51 = arrays(m[0])
 min101 =arrays(m[1])
 min151 = arrays(m[2])
 maxXR = arrays(m[3])
 minratio1 = arrays(m[4])
 minratio2 = arrays(m[5])
-matchedapoid = arrays(m[6])
-matchedlocid = arrays(m[7])
+matchedapoid = np.array(m[6])
+matchedlocid = np.array(m[7])
 
-''' This is more of a thought but, here is a wider range for identifying sb2s
+#This is more of a thought but, here is a wider range for identifying sb2s
 def idsb2s(r51,r101,r151,xr,ratio1,ratio2):
     likely_sb2s = np.where( (0.4 < r101 < 1.4 and 0.02 < ratio1 < 0.95) or
                             (0.25 < r151 < 1.50 and 0.5 < r51 < 1.50) or
@@ -168,13 +223,12 @@ def idsb2s(r51,r101,r151,xr,ratio1,ratio2):
                             (0.05 < xr < 1.75 and 0.05 < ratio1 < 0.09) or
                             (0.05 < xr < 1.5 and 0.05 < ratio2 < 0.15)
                             )
-'''
 
 
 # From the provided indicies for binaries (generated in the idSB2 function) we can find the assocated location ID, 
 # Apogee ID, and other parameters of the star. This will be used to output into a .csv file
 
-likely_sb2 = likely_sb2s(min51,min101,min151,maxXR,minratio1,minratio2)
+likely_sb2 = id2(min51,min101,min151,maxXR,minratio1,minratio2)
 
 bin_apoID = []
 bin_locID = []
@@ -216,6 +270,6 @@ df['log(R101/R51)'] = bin_r2
 df['log(x-range)'] = bin_xr
 
 #Write to a csv file
-df.to_csv('DR14_Binary_Candidates.csv', header=True, index=False) 
+df.to_csv('DR14_Binary_Candidates.csv', header=True, index=False) '''
      
      
