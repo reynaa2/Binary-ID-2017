@@ -122,7 +122,7 @@ def idSB2(R51,R101,R151,xr,ratio1,ratio2):
 ####### THIS IS WHERE THE ROUTINE BEGINS! THIS IS WHERE THE TOTAL .CSV FILE OF DR14 AND STATS ARE READ IN ########
 
 #Read in csv Dr14_Stats_Catalog and require targets to pass a SNR > 10
-dr14 = pd.read_csv('DR14_Stats_Catalog2a.csv')
+dr14 = pd.read_csv('DR14_StatsCatalog.csv')
 locID = np.array(dr14['LocationID'])
 apoID = np.array(dr14['ApogeeID'])
 visit = dr14['Visit']
@@ -233,35 +233,22 @@ def idSB2(locid,apoid,r51,r101,r151,xr,ratio1,ratio2,peak_val):
     candidates_locid = []
     
     for i in range(len(r51)):
-        if (0.4<r51[i]<1.4) and (0.02<ratio1[i]<0.95):
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
-
-        if (0.25<r151[i]<1.5) and (0.5<r51[i]<0.15):
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
-
-        if (0.25<r51[i]<1.5) and (0.05<ratio2[i]<0.09):
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
-
-        if (0.05<xr[i]<1.75) and (0.05<ratio1[i]<0.09):
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
-
-        if (0.05<xr[i]<1.4) and (0.05<ratio2[i]<0.95):
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
-        
-        if peak_val[i] > -0.5:
-            candidates_locid.append(locid[i])
-            candidates_apoid.append(apoid[i])
+        if ((0.4<r51[i]<1.4) and (0.02<ratio1[i]<0.95)):
+            if (0.25<r151[i]<1.5) and (0.5<r51[i]<0.15):
+                if (0.25<r51[i]<1.5) and (0.05<ratio2[i]<0.09):
+                    if (0.05<xr[i]<1.75) and (0.05<ratio1[i]<0.09):
+                        if (0.05<xr[i]<1.4) and (0.05<ratio2[i]<0.95):
+                            if peak_val[i] > -0.5:
+                                candidates_locid.append(locid[i])
+                                candidates_apoid.append(apoid[i])
+                            
 
     return candidates_locid,candidates_apoid
+   
 
 likely_binaries = idSB2(matchedlocid,matchedapoid,min51,min101,min151,maxXR,minratio1,minratio2,matched_peaks)      
        
-
+print(len(likely_binaries[0]))
 
 # From the provided indicies for binaries (generated in the idSB2 function) we can find the assocated location ID, 
 # Apogee ID, and other parameters of the star. This will be used to output into a .csv file
