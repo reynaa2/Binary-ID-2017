@@ -73,7 +73,7 @@ bin_visit = np.asarray(openfile['Visit'])
 ''' 
 Apply the first cut: visits of a star must have SNR > 10
 '''
-kcBins = snr_rec(bin_snr,bin_locID,bin_apoID,bin_R51,bin_R101,bin_R151,bin_XRange,bin_Ratio1,bin_Ratio2,bin_visit)
+kcBins = snr_rec(bin_snr,bin_locID,bin_apoID,bin_R51,bin_R101,bin_R151,bin_Ratio1,bin_Ratio2,bin_XRange,bin_visit)
 kcapoid = kcBins[0]
 kclocid = kcBins[1]
 kcR51 = kcBins[2]
@@ -83,7 +83,7 @@ kcXR = kcBins[5]
 kcR1 = kcBins[6]
 kcR2 = kcBins[7]
 
-dr14 = snr_rec(snr,apogeeid,locationid,R51,R101,R151,xranges,ratio1,ratio2,visits)
+dr14 = snr_rec(snr,apogeeid,locationid,R51,R101,R151,ratio1,ratio2,xranges,visits)
 dr14apoid = dr14[0]
 dr14locid = dr14[1]
 dr14R51 = dr14[2]
