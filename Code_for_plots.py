@@ -13,9 +13,11 @@ Open DR14_Stats_Catalog.csv. Over all visits for a star we will need to:
 3. Find the minimum R ratios: R 151/R 101 and R 101/R 51
  '''
 
-def matches(x,y,z):
-    #x = apogeeID
-    #y = parameter in question that you want to find the minimum value of over all visits for a given apogee ID
+def matches(x,y,z,switch):
+    #x = parameter in question that you want to find the minimum value of over all visits for a given apogee ID
+    #y = apogeeID
+    #z = location id
+    # Switch = parameter to switch from min to max; if switch == 1, use max else use min
     match_param_array = []
     match_apogeeid = []
     match_locationid = []
@@ -24,8 +26,14 @@ def matches(x,y,z):
         newID = np.where(y == uniqueID[i])
         new_array = newID[0]
         new_param_array = x[new_array]
+        #print(new_param_array)
         new_apo = y[new_array]
-        small_val = min(new_param_array)
+        if switch ==0:
+            small_val = min(new_param_array)
+        else:
+            small_val = max(new_param_array)
+        #print(small_val)
+        #print('  ')
         loc_small_val = np.where(new_param_array == small_val)
         small_loc = loc_small_val[0][0]
         small_param = round(small_val,4)
@@ -34,7 +42,7 @@ def matches(x,y,z):
         #array for matching apogee ids and location ids
         match_apogeeid.append(y[small_loc])
         match_locationid.append(z[small_loc])
-    return match_locationid,match_apogeeid,match_param_array
+    return match_param_array,match_apogeeid,match_locationid
     
 
 
@@ -126,22 +134,22 @@ ratio2 = np.asarray(data_dr14['log(Ratio2)'])
 peak_value = np.asarray(data_dr14['Peak_value'])
 
 #Send parameters to function "matches"
-dr14 = matches(R51,apogeeid,locationid)
-dr14_locationid = dr14[0]
+dr14 = matches(R51,apogeeid,locationid,0)
+dr14_locationid = dr14[2]
 dr14_apogeeid = dr14[1]
-dr14_R51 = dr14[2]
-r101 = matches(R101,apogeeid,locationid)
-dr14_R101= r101[2]
-r151 = matches(R151,apogeeid,locationid)
-dr14_R151 = r151[2]
-xr = matches(xranges,apogeeid,locationid)
-dr14_xr = xr[2]
-ratio_1 = matches(ratio1,apogeeid,locationid)
-dr14_R1 = ratio_1[2]
-ratio_2 = matches(ratio2,apogeeid,locationid)
-dr14_R2 = ratio_2[2]
-peaks = matches(peak_value,apogeeid,locationid)
-dr14_peakval = peaks[2]
+dr14_R51 = dr14[0]
+r101 = matches(R101,apogeeid,locationid,0)
+dr14_R101= r101[0]
+r151 = matches(R151,apogeeid,locationid,0)
+dr14_R151 = r151[0]
+xr = matches(xranges,apogeeid,locationid,1)
+dr14_xr = xr[0]
+ratio_1 = matches(ratio1,apogeeid,locationid,0)
+dr14_R1 = ratio_1[0]
+ratio_2 = matches(ratio2,apogeeid,locationid,0)
+dr14_R2 = ratio_2[0]
+peaks = matches(peak_value,apogeeid,locationid,0)
+dr14_peakval = peaks[0]
 
 #Construct a .csv file to hold smallest R, R ratios, and max x-ranges
 cols = ['LocationID', 'ApogeeID']
