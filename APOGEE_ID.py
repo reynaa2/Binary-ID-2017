@@ -148,6 +148,11 @@ loc = []
 apo= []
 
 # Read in allStar list for DR14 to get .fits of all stars in APOGEE
+# NOTE -- USING APREAD.ALLSTAR MEANS THAT THE APSTAR FILE THAT IS DOWNLOADED IS WHATEVER VERSION
+# IS SET AS RESULTS_VERS IN THE USER'S ENVIRONMENT VARIABLES!
+# CURRENTLY UPDATED ON KRC COMPUTER TO POINT TO:
+# setenv SDSS_LOCAL_SAS_MIRROR "/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14"  
+# setenv RESULTS_VERS "l31c.2"
 allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
 locationIDs = allStarDR14['LOCATION_ID']
 apogeeIDs = allStarDR14['APOGEE_ID']
@@ -156,13 +161,13 @@ apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 #for j in range(len(locationIDs)):
 for j in range(len(locationIDs)):
-        print(j)
+        #print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
         #File path to open .fits 
-        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -219,6 +224,8 @@ for j in range(len(locationIDs)):
                         pass
 
         except FileNotFoundError:
+            print('oops -- no file!')
+            print('file #',j,path)
             pass
 
 #Find and replace all nan values with 9 which will be prominent in log space
