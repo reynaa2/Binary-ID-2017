@@ -123,8 +123,8 @@ apoID = bins['Apogee_ID']
 ids = bins['ID']
 
 #include options for running the analysis only on the training sample
-#apogeeIDs = apoID
-#locationIDs = locID
+apogeeIDs = apoID
+locationIDs = locID
 
 binApoID = []
 binLocID = []
@@ -159,10 +159,10 @@ apo= []
 # setenv RESULTS_VERS "l31c.2"
 
 #COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
-allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
-locationIDs = allStarDR14['LOCATION_ID']
-apogeeIDs = allStarDR14['APOGEE_ID']
-apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+#allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+#locationIDs = allStarDR14['LOCATION_ID']
+#apogeeIDs = allStarDR14['APOGEE_ID']
+#apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 #for j in range(len(locationIDs)):
@@ -300,8 +300,8 @@ df['Peak_value'] = peak_val
 
 
 #save output for main DR14 catalog
-df.to_csv('DR14StatsCatalog.csv')
+#df.to_csv('DR14StatsCatalog.csv')
 
 #Option for saving output for just the training set stars
-#df.to_csv('TrainingSet_StatsCatalog.csv')
+df.to_csv('TrainingSet_StatsCatalog.csv')
      
