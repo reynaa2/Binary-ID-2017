@@ -122,6 +122,10 @@ locID = bins['Location_ID']
 apoID = bins['Apogee_ID']
 ids = bins['ID']
 
+#include options for running the analysis only on the training sample
+#apogeeIDs = apoID
+#locationIDs = locID
+
 binApoID = []
 binLocID = []
 for i in range(len(ids)):
@@ -153,6 +157,8 @@ apo= []
 # CURRENTLY UPDATED ON KRC COMPUTER TO POINT TO:
 # setenv SDSS_LOCAL_SAS_MIRROR "/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14"  
 # setenv RESULTS_VERS "l31c.2"
+
+#COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
 allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
 locationIDs = allStarDR14['LOCATION_ID']
 apogeeIDs = allStarDR14['APOGEE_ID']
@@ -292,7 +298,10 @@ df['log(Ratio1)'] = newR1
 df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
-#df.to_csv('Binary_Stats.csv')
+
+#save output for main DR14 catalog
 df.to_csv('DR14StatsCatalog.csv')
 
+#Option for saving output for just the training set stars
+#df.to_csv('TrainingSet_StatsCatalog.csv')
      
