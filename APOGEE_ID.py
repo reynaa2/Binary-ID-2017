@@ -8,6 +8,8 @@ from astropy.io import fits
 import os.path
 from pathlib import Path
 
+##NOTE: This has been adjusted to make a catalog for the training set binaries!
+
 #Calculate R-Values for given ranges
 def calcR(x,pm):
     ccfCenter = max(x)
@@ -148,17 +150,19 @@ loc = []
 apo= []
 
 # Read in allStar list for DR14 to get .fits of all stars in APOGEE
-allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
-locationIDs = allStarDR14['LOCATION_ID']
-apogeeIDs = allStarDR14['APOGEE_ID']
-apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+#allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+#locationIDs = allStarDR14['LOCATION_ID']
+#apogeeIDs = allStarDR14['APOGEE_ID']
+#apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
+for j in range(len(binLocID)):
 #for j in range(len(locationIDs)):
-for j in range(len(locationIDs)):
         print(j)
-        locationID = locationIDs[j]
-        apogeeID = apogeeIDs[j]
+        locationID = binLocID[j]
+        apogeeID = binApoID[j]
+        # locationID = locationIDs[j]
+        # apogeeID = apogeeIDs[j]
         #File path to open .fits 
         my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
@@ -285,7 +289,7 @@ df['log(Ratio1)'] = newR1
 df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
-#df.to_csv('Binary_Stats.csv')
-df.to_csv('DR14StatsCatalog.csv')
+df.to_csv('TrainingSet_Binary_Stats.csv')
+#df.to_csv('DR14StatsCatalog.csv')
 
      
