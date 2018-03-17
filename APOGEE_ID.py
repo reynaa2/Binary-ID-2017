@@ -150,23 +150,23 @@ loc = []
 apo= []
 
 # Read in allStar list for DR14 to get .fits of all stars in APOGEE
-#allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
-#locationIDs = allStarDR14['LOCATION_ID']
-#apogeeIDs = allStarDR14['APOGEE_ID']
-#apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+locationIDs = allStarDR14['LOCATION_ID']
+apogeeIDs = allStarDR14['APOGEE_ID']
+apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
-for j in range(len(binLocID)):
-#for j in range(len(locationIDs)):
+#for j in range(len(binLocID[1:100])):
+for j in range(len(locationIDs)):
         print(j)
-        locationID = binLocID[j]
-        apogeeID = binApoID[j]
-        # locationID = locationIDs[j]
-        # apogeeID = apogeeIDs[j]
+        #locationID = binLocID[j]
+        #apogeeID = binApoID[j]
+        locationID = locationIDs[j]
+        apogeeID = apogeeIDs[j]
         #File path to open .fits 
-        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -225,17 +225,21 @@ for j in range(len(binLocID)):
         except FileNotFoundError:
             pass
 
+
 #Find and replace all nan values with 9 which will be prominent in log space
 x_ranges = [9 if math.isnan(x) else x for x in xr]
-Xranges = [9 if math.isinf(y) else y for y in x_ranges]
-
+#Xranges = [9 if math.isinf(y) else y for y in x_ranges]
+# Replace all -inf values with an outlier # which we will assign to be 11
+for Xranges, i in enumerate(x_ranges):
+    if i == 0:
+        x_ranges[Xranges] = 11
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
 #BinR1 = arrays(binR1)
 #BinR2 = arrays(binR2)
-new_Xrange = arrays(Xranges)
+new_Xrange = arrays(x_ranges)
 peak_val = arrays(peak_value)
 
 #Find and replace all nan values with 9 which will be prominent in log space
@@ -289,7 +293,7 @@ df['log(Ratio1)'] = newR1
 df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
-df.to_csv('TrainingSet_Binary_Stats.csv')
-#df.to_csv('DR14StatsCatalog.csv')
+#df.to_csv('TrainingSet_Binary_Stats.csv')
+df.to_csv('DR14StatsCatalog2.csv')
 
      
