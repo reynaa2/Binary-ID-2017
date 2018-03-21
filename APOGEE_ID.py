@@ -8,7 +8,6 @@ from astropy.io import fits
 import os.path
 from pathlib import Path
 
-##NOTE: This has been adjusted to make a catalog for the training set binaries!
 
 #Calculate R-Values for given ranges
 def calcR(x,pm):
@@ -94,22 +93,22 @@ def r_ratio(r51,r151,r101):
         ratios = [round(R1_ratio,4),round(R2_ratio,4)]
         return ratios
 
-def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
-    min_r51 = r51
-    min_r101 = r101
-    min_r151 = r151
-    r1_ratio = R1_ratio
-    r2_ratio = R2_ratio
-    max_xr = xr
+# def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
+#     min_r51 = r51
+#     min_r101 = r101
+#     min_r151 = r151
+#     r1_ratio = R1_ratio
+#     r2_ratio = R2_ratio
+#     max_xr = xr
     
-    likely_sb2s = np.where((math.log10(r1_ratio) > 0.06 and (math.log10(r1_ratio) < 0.13 and 
-                            math.log10(min_r101) < 0.83)) or (math.log10(r2_ratio) > 0.05 and 
-                            math.log10(r2_ratio) < 0.02 and math.log10(min_r51) < 0.83) and
-                            math.log10(min_r51) > 0.25 and math.log10(min_r101) > 0.22 and
-                            math.log10(peak_401) > -0.5 and math.log10(max_xr) < 2.3 and 
-                            math.log10(max_xr) > 0.7
-                          )
-    return likely_sb2s
+#     likely_sb2s = np.where((math.log10(r1_ratio) > 0.06 and (math.log10(r1_ratio) < 0.13 and 
+#                             math.log10(min_r101) < 0.83)) or (math.log10(r2_ratio) > 0.05 and 
+#                             math.log10(r2_ratio) < 0.02 and math.log10(min_r51) < 0.83) and
+#                             math.log10(min_r51) > 0.25 and math.log10(min_r101) > 0.22 and
+#                             math.log10(peak_401) > -0.5 and math.log10(max_xr) < 2.3 and 
+#                             math.log10(max_xr) > 0.7
+#                           )
+#     return likely_sb2s
 
 #Turn lists into arrays and then log arrays
 def arrays(x):
@@ -164,9 +163,9 @@ for j in range(len(locationIDs)):
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
         #File path to open .fits 
-        my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -227,18 +226,15 @@ for j in range(len(locationIDs)):
 
 
 #Find and replace all nan values with 9 which will be prominent in log space
-x_ranges = [9 if math.isnan(x) else x for x in xr]
-#Xranges = [9 if math.isinf(y) else y for y in x_ranges]
-# Replace all -inf values with an outlier # which we will assign to be 11
+#x_ranges = [9 if math.isnan(x) else x for x in xr]
+# Replace all -inf values with an outlier # which we will assign to be 1000
 for Xranges, i in enumerate(x_ranges):
     if i == 0:
-        x_ranges[Xranges] = 11
+        x_ranges[Xranges] = 1000
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
-#BinR1 = arrays(binR1)
-#BinR2 = arrays(binR2)
 new_Xrange = arrays(x_ranges)
 peak_val = arrays(peak_value)
 
@@ -255,25 +251,6 @@ RatioR1 = np.array(R1)
 RatioR2 = np.array(R2)
 newR1 = RatioR1.astype(np.float)
 newR2 = RatioR2.astype(np.float)
-
-#Check the lengths of the arrays now that we have extracted undesired values
-#print('The R values: ')
-#print(len(newR51))
-#print(len(newR101))
-#print(len(newR151))
-#print('The other params: ')
-#print(len(new_Xranges))
-#print(len(SNRS))
-#print(len(newR1))
-#print(len(newR2))
-#print(len(peak_val))
-
-
-#Make the nan a big value (resolved!)
-#Run on all DR14 (with new format for HJD)
-#Push to GitHub -> DR14 (Resolved!)
-#Move to updating the script to impliment the cuts which needs to read in HJD (Resolved!)
-#Look at plots for sanity check (Resolved!)
 
 #Write out the results to a file via pandas
 cols = ['LocationID', 'ApogeeID']
@@ -294,6 +271,6 @@ df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
 #df.to_csv('TrainingSet_Binary_Stats.csv')
-df.to_csv('DR14StatsCatalog2.csv')
+df.to_csv('DR14_Catalog_Stats.csv')
 
      
