@@ -228,14 +228,14 @@ for j in range(len(locationIDs)):
 #Find and replace all nan values with 9 which will be prominent in log space
 #x_ranges = [9 if math.isnan(x) else x for x in xr]
 # Replace all -inf values with an outlier # which we will assign to be 1000
-for Xranges, i in enumerate(x_ranges):
+for Xranges, i in enumerate(xr):
     if i == 0:
-        x_ranges[Xranges] = 1000
+        xr[Xranges] = 1000
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
-new_Xrange = arrays(x_ranges)
+new_Xrange = arrays(xr)
 peak_val = arrays(peak_value)
 
 #Find and replace all nan values with 9 which will be prominent in log space
