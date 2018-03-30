@@ -78,7 +78,7 @@ def bisector(xccf,yccf):
         #print(bisector_pts)
         return(bisector_pts)
 
-def xrange(x_bisector):
+def xrangee(x_bisector):
     xr = max(x_bisector) - min(x_bisector)
     xR = abs(xr)
     return xR
@@ -90,7 +90,7 @@ def r_ratio(r51,r151,r101):
         r2_ratio = r101/r51
         R1_ratio = math.log10(r1_ratio)
         R2_ratio = math.log10(r2_ratio)
-        ratios = [round(R1_ratio,4),round(R2_ratio,4)]
+        ratios = [round(R1_ratio,6),round(R2_ratio,6)]
         return ratios
 
 # def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
@@ -163,9 +163,9 @@ for j in range(len(locationIDs)):
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
         #File path to open .fits 
-        my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
+        my_file = Path('/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
-            path = '/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+            path = '/Volumes/coveydata-1/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -190,7 +190,7 @@ for j in range(len(locationIDs)):
                         x_bs = bs_pt[0]
                         y_bs = bs_pt[1]
                         #x_range = xrange(bs_pt[0])
-                        x_range = xrange(x_bs)
+                        x_range = xrangee(x_bs)
                         #Plotting CCFs
                         #plt.plot(xccf,ccf, label='Visit: '+str(visit))
                         #plt.plot(x_bs,y_bs,'o')
@@ -226,11 +226,11 @@ for j in range(len(locationIDs)):
 
 
 #Find and replace all nan values with 9 which will be prominent in log space
-#x_ranges = [9 if math.isnan(x) else x for x in xr]
+x_ranges = [1000 if math.isnan(x) else x for x in xr]
 # Replace all -inf values with an outlier # which we will assign to be 1000
-for Xranges, i in enumerate(xr):
-    if i == 0:
-        xr[Xranges] = 1000
+# for Xranges, i in enumerate(xr):
+#     if i == 0:
+#         xr[Xranges] = 1000
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
@@ -271,6 +271,6 @@ df['log(Ratio2)'] = newR2
 df['Peak_value'] = peak_val
 
 #df.to_csv('TrainingSet_Binary_Stats.csv')
-df.to_csv('DR14_Catalog_Stats.csv')
+df.to_csv('DR14_Catalog_Stats_Updated.csv')
 
      
