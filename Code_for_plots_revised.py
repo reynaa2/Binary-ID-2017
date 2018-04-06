@@ -123,9 +123,9 @@ dr14_R1 = ratio_1[0]
 print('FINDING MIN R101/R51')
 ratio_2 = matches(ratio2,apogeeid,locationid,0,peak_value)
 dr14_R2 = ratio_2[0]
-# print('FINDING MAX X RANGE')
-# xr = matches(xranges,apogeeid,locationid,1,peak_value)
-# dr14_xr = xr[0]
+print('FINDING MAX X RANGE')
+xr = matches(xranges,apogeeid,locationid,1,peak_value)
+dr14_xr = xr[0]
 
 #Impliment if statement to eliminate targets with log(xranges) > 2.5 due to this being our flag for bad data
 dr14_locationid = dr14_locationid[dr14_xr < 2.5]
@@ -183,26 +183,22 @@ df.to_csv('Revised_DR14_SmallR_LargeXR.csv')
 
 
 # #Generate a graph for xrange vs R_101
-# xr_vs_r101 = twod_hist(dr14_xr,dr14_r101,tsb_xr,tsb_r101,'X ranges vs $R_{101}$','log(max x-range)','log($R_{101}$)')
+# xr_vs_r101 = corner_hist2d(dr14_xr,dr14_r101,tsb_xr,tsb_r101,'X ranges vs $R_{101}$','log(max x-range)','log($R_{101}$)')
 
 # #Generate a graph for max x-range vs R_101/R_51 (Ratio 2)
-# xr_vs_R2 = twod_hist(dr14_xr,dr14_ratio2,tsb_xr,tsb_ratio2,'X ranges vs $R_{101}/R_{51}$','log(max x-range)','log($R_{101}/R_{51}$)')
+# xr_vs_R2 = corner_hist2d(dr14_xr,dr14_ratio2,tsb_xr,tsb_ratio2,'X ranges vs $R_{101}/R_{51}$','log(max x-range)','log($R_{101}/R_{51}$)')
 
 # #Generate a graph for max x-range vs R_151/R_101 (Ratio 1)
-# xr_vs_R1 = twod_hist(dr14_xr,dr14_ratio1,tsb_xr,tsb_ratio1,'X ranges vs $R_{151}/R_{101}$','log(max x-range)','log($R_{151}/R_{101}$)')
+# xr_vs_R1 = corner_hist2d(dr14_xr,dr14_ratio1,tsb_xr,tsb_ratio1,'X ranges vs $R_{151}/R_{101}$','log(max x-range)','log($R_{151}/R_{101}$)')
 
-# #Generate a graph for R_101 vs R_151/R_101 (Ratio 1)
-# r101_vs_R1 = twod_hist(dr14_r101,dr14_ratio1,tsb_r101,tsb_ratio1,'R101 vs R151_R101','log($R_{101}$)', 'log($R_{151}/R_{101}$)')
-
-# #Generate a graph for R_51 vs R_101/R_51
-# r51_vs_R2 = twod_hist(dr14_r51,dr14_ratio2,tsb_r51,tsb_ratio2,'R51 vs R101_R51','log($R_{51}$)','log($R_{101}/R_{51}$)')
-
-# ### ---- TRY MAKING A DENSITY PLOT ----- ###
+# ### ---- TRY MAKING A DENSITY PLOT Using Corner ----- ###
 # #Generate a graph for R_51 vs R_101/R_51 (Ratio 2)
-# r51_vs_R2 = corner_hist2d(r14_r51,dr14_ratio2,tsb_r51,tsb_ratio2,'R51 vs R101_R51','log($R_{51}$)','log($R_{101}/R_{51}$)',-3,3,-2,5)
+# r51_vs_R2 = corner_hist2d(r14_r51,dr14_ratio2,tsb_r51,tsb_ratio2,'R51 vs R101_R51','log($R_{51}$)','log($R_{101}/R_{51}$)')
 
 # #Generate a graph for R_101 vs R_151/R_101 (Ratio 1)
-# r101_vs_R1 = corner_hist2d(dr14_r101,dr14_ratio1,tsb_r101,tsb_ratio1,'R101 vs R151_R101','log($R_{101}$)', 'log($R_{151}/R_{101}$)',-3,3,-2,5)
+# r101_vs_R1 = corner_hist2d(dr14_r101,dr14_ratio1,tsb_r101,tsb_ratio1,'R101 vs R151_R101','log($R_{101}$)', 'log($R_{151}/R_{101}$)')
+
+# # ---- GO BACK TO USING THE TWOD_HIST FUNCTION ----- ##
 
 # #Generate a graph for xrange vs R_101
 # xr_vs_r101 = twod_hist(dr14_xr,dr14_r101,tsb_xr,tsb_r101,'X ranges vs R_101','log(max x-range)','log($R_{101}$)',-3,3,-2,5)
@@ -212,3 +208,9 @@ df.to_csv('Revised_DR14_SmallR_LargeXR.csv')
 
 # #Generate a graph for max x-range vs R_151/R_101 (Ratio 1)
 # xr_vs_R1 = twod_hist(dr14_xr,dr14_ratio1,tsb_xr,tsb_ratio1,'X ranges vs R151_R101','log(max x-range)','log($R_{151}/R_{101}$)',-3,3,-2,5)
+
+# #Generate a graph for R_51 vs R_101/R_51 (Ratio 2)
+# r51_vs_R2 = twod_hist(r14_r51,dr14_ratio2,tsb_r51,tsb_ratio2,'R51 vs R101_R51','log($R_{51}$)','log($R_{101}/R_{51}$)'-3,3,-2,5)
+
+# #Generate a graph for R_101 vs R_151/R_101 (Ratio 1)
+# r101_vs_R1 = twod_hist(dr14_r101,dr14_ratio1,tsb_r101,tsb_ratio1,'R101 vs R151_R101','log($R_{101}$)', 'log($R_{151}/R_{101}$)'-3,3,-2,5)
