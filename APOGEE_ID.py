@@ -191,9 +191,9 @@ for j in range(len(locationIDs)):
 
 
 #Find and replace all nan values with 1000 which will be prominent in log space as 3
-#x_ranges = [1000 if math.isnan(x) else x for x in xr]
+x_ranges = [1000 if math.isnan(x) else x for x in xr]
 # Replace all -inf values with an outlier # which we will assign to be 1000 and then 3 in log space
-new_xr = [1000 if math.isinf(y) else y for y in xr]
+new_xr = [1000 if math.isinf(y) else y for y in x_ranges]
 
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
