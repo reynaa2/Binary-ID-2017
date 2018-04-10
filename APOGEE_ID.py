@@ -75,7 +75,6 @@ def bisector(xccf,yccf):
         x_bisector.append(x_3)
 
         bisector_pts = np.vstack([x_bisector,y_bisector])
-        #print(bisector_pts)
         return(bisector_pts)
 
 def xrangee(x_bisector):
@@ -124,8 +123,6 @@ apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 for j in range(len(locationIDs)):
         print(j)
-        #locationID = binLocID[j]
-        #apogeeID = binApoID[j]
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
         #File path to open .fits 
@@ -171,9 +168,9 @@ for j in range(len(locationIDs)):
                             R101 = calcR(ccf,50)
                             R51 = calcR(ccf,25)
                             #Ensure 3 decimal places reported in .csv
-                            oldR151.append(round(R151[0],3))
-                            oldR101.append(round(R101[0],3))
-                            oldR51.append(round(R51[0],3))
+                            oldR151.append(round(R151[0],4))
+                            oldR101.append(round(R101[0],4))
+                            oldR51.append(round(R51[0],4))
                             #Add to list of CCF peak Values
                             peak_value.append(partr151)
                             #Generate the Ratios 
@@ -194,15 +191,15 @@ for j in range(len(locationIDs)):
 
 
 #Find and replace all nan values with 1000 which will be prominent in log space as 3
-x_ranges = [1000 if math.isnan(x) else x for x in xr]
+#x_ranges = [1000 if math.isnan(x) else x for x in xr]
 # Replace all -inf values with an outlier # which we will assign to be 1000 and then 3 in log space
-new_xr = [1000 if math.isinf(y) else y for y in x_ranges]
+new_xr = [1000 if math.isinf(y) else y for y in xr]
 
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
-new_xrange = arrays(new_Xranges)
+#new_xrange = arrays(new_Xranges)
 new_Xrange = arrays(new_xr)
 peak_val = arrays(peak_value)
 
@@ -230,10 +227,10 @@ df['log(R51)'] = newR51
 df['log(R101)'] = newR101
 df['log(R151)'] = newR151
 df['log(xr)'] = new_Xrange
-df['log(Ratio1)'] = newR1
-df['log(Ratio2)'] = newR2
-df['Peak_value'] = peak_val
+df['log(R151/R101)'] = newR1
+df['log(R101/R51)'] = newR2
+df['log(Peak_value)'] = peak_val
 
-df.to_csv('DR14_Stats_Catalog_Updated.csv')
+df.to_csv('DR14_Stats_Catalog_Revision.csv')
 
      
