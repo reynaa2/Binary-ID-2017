@@ -122,9 +122,9 @@ apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 for j in range(len(locationIDs)):
-        print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
+        print(j)
         #File path to open .fits 
         my_file = Path('/Volumes/coveydata/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
@@ -154,7 +154,6 @@ for j in range(len(locationIDs)):
                             #split up 2D array to get x and y coord. for bisector pts
                             x_bs = bs_pt[0]
                             y_bs = bs_pt[1]
-                            #x_range = xrange(bs_pt[0])
                             x_range = xrangee(x_bs)
                             #Plotting CCFs
                             #plt.plot(xccf,ccf, label='Visit: '+str(visit))
@@ -185,21 +184,21 @@ for j in range(len(locationIDs)):
 
                         else:
                             pass
-
         except FileNotFoundError:
             pass
 
-
-#Find and replace all nan values with 1000 which will be prominent in log space as 3
-x_ranges = [1000 if math.isnan(x) else x for x in xr]
-# Replace all -inf values with an outlier # which we will assign to be 1000 and then 3 in log space
-new_xr = [1000 if math.isinf(y) else y for y in x_ranges]
+#Find and replace all nan values with 10000 which will be prominent in log space as 4
+x_ranges = [10000 if math.isnan(x) else x for x in xr]
+# Replace all -inf values with an outlier # which we will assign to be 10000 and then 4 in log space
+newer_xr = [10000 if math.isinf(y) else y for y in x_ranges]
+# Replace all 0 values with an outlier # which we will assign to be 1000 and then 3 in log space
+#(using a different number here so that xr=0 can be distinguished from truly bad data [xr = inf and xr = nan])
+new_xr = [1000 if z == 0 else z for z in newer_xr]
 
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
-#new_xrange = arrays(new_Xranges)
 new_Xrange = arrays(new_xr)
 peak_val = arrays(peak_value)
 
@@ -231,6 +230,6 @@ df['log(R151/R101)'] = newR1
 df['log(R101/R51)'] = newR2
 df['log(Peak_value)'] = peak_val
 
-df.to_csv('DR14_Stats_Catalog_Revision.csv')
+df.to_csv('DR14_Stats_Catalog_JMR_Revision.csv')
 
      
