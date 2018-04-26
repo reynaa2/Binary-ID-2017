@@ -5,7 +5,7 @@ import pandas as pd
 def twod_hist(x,y,a,b,title,xlabel,ylabel,c,d,e,f):
     # x = x parameter
     # y = y parameter
-    # a = comparison x parameter 
+    # a = comparison x parameter
     # b = comparision y parameter
     # title, xlabel, and ylabel are strings for the plot labels.
     # c and d = y limits for the plot
@@ -76,7 +76,7 @@ def visual_cuts(apogeeid, locationid,R51,R101,R151,R_ratio1,R_ratio2,max_xrange)
         if (0.29 < R101[i] < 1.04 and -0.02 < R_ratio1[i] < 0.9) or ( 0.25<R51[i]<1.0 and -0.77<R_ratio2[i]<0.13):
             if (0.35<max_xrange[i]<1.75 and -0.12<R_ratio2[i]<0.15) or (0.50<max_xrange[i]<1.75 and -0.2<R_ratio1[i]<0.09):
                 if (0.50 < max_xrange[i] < 1.75 and -0.2 < R_ratio1[i]<0.09):
-                    if (0.05<max_xrange[i]<2.00 and 0.25<R101[i]<1.15): 
+                    if (0.05<max_xrange[i]<2.00 and 0.25<R101[i]<1.15):
                         sb2_locationid.append(locationid[i])
                         sb2_apogeeid.append(apogeeid[i])
                         sb2_minR51.append(R51[i])
@@ -124,25 +124,32 @@ dr14_maxXR = dr14_maxXR[dr14_maxXR < 2.5]
 
 print(len(tsb_apogeeid))
 # Find the number of stars in DR14 that pass Jacob Skinner's SB2 cuts
-js_results = js_cuts(dr14_apogeeid,dr14_locationid, dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
-jsCuts_locationid = js_results[0]
-jsCuts_apogeeid = js_results[1]
-print(len(jsCuts_apogeeid))
+# js_results = js_cuts(dr14_apogeeid,dr14_locationid, dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
+# jsCuts_locationid = js_results[0]
+# jsCuts_apogeeid = js_results[1]
+# print(len(jsCuts_apogeeid))
 
-JMR_results = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
-jmr_locationid = JMR_results[0]
-jmr_apogeeid = JMR_results[1]
-print(len(jmr_apogeeid))
+jsCuts_locationid, jsCuts_apogeeid, jsCuts_minR51,
+jsCuts_minR101, jsCuts_minR_ratio1, jsCuts_minR_ratio2,
+jsCuts_maxXR, jsCuts_peak = js_cuts(dr14_apogeeid,dr14_locationid,
+dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
 
+
+# JMR_results = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
+# jmr_locationid = JMR_results[0]
+# jmr_apogeeid = JMR_results[1]
+# print(len(jmr_apogeeid))
+jmr_locationid, jmr_apogeeid, jmr_minR51, jmr_minR101, jmr_minR151,
+jmr_minR_ratio1, jmr_minR_ratio2, jmr_maxXR = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
 
 # Find the apogee IDs that are in both catalogs by searching for un-unique apogee ids
-def matches(x,y,z,a,b,c):
+def matches(x,y,z,a):#,b,c):
     array_a = []
     array_b = []
     array_c = []
     array_d = []
-    array_e = []
-    array_f = []
+    #array_e = []
+    #array_f = []
     x = np.asarray(x) # Bigger array of strings
     y = np.asarray(y) # Smaller array of strings
     for i in range(len(y)):
@@ -151,12 +158,18 @@ def matches(x,y,z,a,b,c):
             array_b.append(y[i])
             array_c.append(z[i])
             array_d.append(a[i])
-            array_e.append(b[i])
-            array_f.append(c[i])
-    return array_a, array_b, array_c, array_d, array_e, array_f
+            #array_e.append(b[i])
+            #array_f.append(c[i])
+    return array_a, array_b #, array_c, array_d, array_e, array_f
+
+# Find the amount of training set binaries that were classified in the two different cuts (JS v JMR)
+# Send lists found from both cuts into "matches" Function
+jmrCut_match_apogeeid, jmrCut_match_locationid = matches(jmr_apogeeid,tsb_apogeeid, jmr_locationid,tsb_locationid)#,jmr_minr51,jmr_minr101,jmr_minr151,jmr_maxXR)
+
+
 
 # Find the associated R, R ratios, x-ranges, and peaks of the matched apogee IDs
-match_apogeeid, match_locationid, match_r51, match_r101, match_r151, match_xr = matches(dr14_apogeeid,tsb_apoid,dr14_minr51,dr14_minr101,dr14_minr151,dr14_maxXR)
+#match_apogeeid, match_locationid, match_r51, match_r101, match_r151, match_xr = matches(dr14_apogeeid,tsb_apoid,dr14_minr51,dr14_minr101,dr14_minr151,dr14_maxXR)
 
 # match_locationID, match_apogeeID, match_minR51, match_minR101, match_minR151, match_minRatio1, match_minRatio2, match_xr, match_peaks = matches(all_minR51, all_minR101,all_minR151,all_minR1,all_minR2,all_maxXR,all_peaks,all_locationIDs,all_apogeeIDs)
 # Remove the matched elements from the array that contains all the parameter values
