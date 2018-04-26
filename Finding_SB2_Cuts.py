@@ -101,6 +101,27 @@ def read_csvfile(filename,header1,header2,header3,header4,header5,header6,header
     colm_9 = np.asarray(data[header9])
     return colm_1, colm_2, colm_3, colm_4, colm_5, colm_6, colm_7, colm_8, colm_9
 
+# Find the apogee IDs that are in both catalogs by searching for un-unique apogee ids
+def matches(x,y,z,a):#,b,c):
+    array_a = []
+    array_b = []
+    array_c = []
+    array_d = []
+    #array_e = []
+    #array_f = []
+    x = np.asarray(x) # Bigger array of strings
+    y = np.asarray(y) # Smaller array of strings
+    for i in range(len(y)):
+        if y[i] in x:
+            array_a.append(x[i]) # bigger list apogeeid
+            array_b.append(y[i])
+            array_c.append(z[i]) # bigger list location id
+            array_d.append(a[i])
+            #array_e.append(b[i])
+            #array_f.append(c[i])
+    return array_a, array_c # array_b, array_c, array_d, array_e, array_f
+
+## --- ROUTINE BEGINS HERE ---- ##
 # Read in the training set catalog of min R, min R ratios, and max x-range.
 # All quantities are in log space
 dr14_locationid,dr14_apogeeid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR, dr14_peak = read_csvfile('DR14_SmallR_LargeXR_Revised.csv','LocationID','ApogeeID','log(R51)','log(R101)',
@@ -122,58 +143,40 @@ dr14_minratio2 = dr14_minratio2[dr14_maxXR < 2.5]
 dr14_peak_value = dr14_peak[dr14_maxXR < 2.5]
 dr14_maxXR = dr14_maxXR[dr14_maxXR < 2.5]
 
-print(len(tsb_apogeeid))
+print(len(tsb_apogeeid)) # Total number training set binaries that are unique
+print(len(dr14_apogeeid)) # Total number of stars in DR14 that are non-outlier and are unique
+
 # Find the number of stars in DR14 that pass Jacob Skinner's SB2 cuts
-# js_results = js_cuts(dr14_apogeeid,dr14_locationid, dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
-# jsCuts_locationid = js_results[0]
-# jsCuts_apogeeid = js_results[1]
-# print(len(jsCuts_apogeeid))
+jsCuts_locationid, jsCuts_apogeeid, jsCuts_minR51,jsCuts_minR101, jsCuts_minR_ratio1, jsCuts_minR_ratio2,jsCuts_maxXR, jsCuts_peak = js_cuts(dr14_apogeeid,dr14_locationid,dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
+print(len(jsCuts_apogeeid)) # 2,462 stars found
 
-jsCuts_locationid, jsCuts_apogeeid, jsCuts_minR51,
-jsCuts_minR101, jsCuts_minR_ratio1, jsCuts_minR_ratio2,
-jsCuts_maxXR, jsCuts_peak = js_cuts(dr14_apogeeid,dr14_locationid,
-dr14_minr51, dr14_minr101,dr14_minratio1,dr14_minratio2,dr14_maxXR,dr14_peak_value)
+# Find the number of stars in DR14 that pass Jessica's visually determined SB2 Cuts
+jmr_locationid, jmr_apogeeid, jmr_minR51, jmr_minR101, jmr_minR151,jmr_minR_ratio1, jmr_minR_ratio2, jmr_maxXR = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
+print(len(jmr_apogeeid)) # 6,714 stars found
 
-
-# JMR_results = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
-# jmr_locationid = JMR_results[0]
-# jmr_apogeeid = JMR_results[1]
-# print(len(jmr_apogeeid))
-jmr_locationid, jmr_apogeeid, jmr_minR51, jmr_minR101, jmr_minR151,
-jmr_minR_ratio1, jmr_minR_ratio2, jmr_maxXR = visual_cuts(dr14_apogeeid, dr14_locationid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR)
-
-# Find the apogee IDs that are in both catalogs by searching for un-unique apogee ids
-def matches(x,y,z,a):#,b,c):
-    array_a = []
-    array_b = []
-    array_c = []
-    array_d = []
-    #array_e = []
-    #array_f = []
-    x = np.asarray(x) # Bigger array of strings
-    y = np.asarray(y) # Smaller array of strings
-    for i in range(len(y)):
-        if y[i] in x:
-            array_a.append(x[i])
-            array_b.append(y[i])
-            array_c.append(z[i])
-            array_d.append(a[i])
-            #array_e.append(b[i])
-            #array_f.append(c[i])
-    return array_a, array_b #, array_c, array_d, array_e, array_f
-
-# Find the amount of training set binaries that were classified in the two different cuts (JS v JMR)
-# Send lists found from both cuts into "matches" Function
+# Find the amount of training set binaries that were classified in the two different cuts (JS v JMR) as a ratio of TSB_selected/ TSB
+# Send lists found from both cuts into "matches" Function, start with JMR Cuts
 jmrCut_match_apogeeid, jmrCut_match_locationid = matches(jmr_apogeeid,tsb_apogeeid, jmr_locationid,tsb_locationid)#,jmr_minr51,jmr_minr101,jmr_minr151,jmr_maxXR)
+print(len(jmrCut_match_apogeeid)) # 1025/1025 training set stars identified
 
+# Send JS Cuts to the "matches" function
+jsCut_match_apogeeid, jsCut_match_locationid = matches(jsCuts_apogeeid, tsb_apogeeid,jsCuts_locationid, tsb_locationid)
+#print(jsCut_match_locationid)
+print(len(jsCut_match_apogeeid)) # 89/ 1025 training set stars identified
 
-
-# Find the associated R, R ratios, x-ranges, and peaks of the matched apogee IDs
-#match_apogeeid, match_locationid, match_r51, match_r101, match_r151, match_xr = matches(dr14_apogeeid,tsb_apoid,dr14_minr51,dr14_minr101,dr14_minr151,dr14_maxXR)
-
-# match_locationID, match_apogeeID, match_minR51, match_minR101, match_minR151, match_minRatio1, match_minRatio2, match_xr, match_peaks = matches(all_minR51, all_minR101,all_minR151,all_minR1,all_minR2,all_maxXR,all_peaks,all_locationIDs,all_apogeeIDs)
-# Remove the matched elements from the array that contains all the parameter values
-
-# Find number of training stars that were identified by the implimented cuts as a ratio of TSB_selected/ TSB
-# Find the number of training set binaries that were found by the implimented cuts as a ratio of the totoal stars selected: TS_selected/ Total Selected
 # Report these stars in a csv file
+def csv_writer(filename,header1,header2,x,y,delimiter_choice):
+    cols = [header1, header2]
+    # Construct dataframe to store variable data
+    dataframe = pd.DataFrame(columns=cols)
+    dataframe[header1] = x
+    dataframe[header2] = y
+    # Turn dataframe to csv file
+    dataframe.to_csv(filename,sep=delimiter_choice,index_label=False)
+    return
+
+# Stars from JMR cuts
+jmr_cut_file = csv_writer('JMR_Cuts.csv','LocationID', 'ApogeeID',jmr_locationid, jmr_apogeeid,'\t')
+
+# Stars from JS cuts
+js_cut_file = csv_writer('JS_Cuts.csv','LocationID', 'ApogeeID',jsCuts_locationid, jsCuts_apogeeid,'\t')
