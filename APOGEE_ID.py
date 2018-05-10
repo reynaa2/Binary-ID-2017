@@ -104,10 +104,19 @@ bins = pd.read_csv('KC_Binaries.csv',delimiter='\t')
 locID = bins['Location_ID']
 apoID = bins['Apogee_ID']
 ids = bins['ID']
+fileToWrite = 'DR14StatsCatalog.csv'
 
-#include options for running the analysis only on the training sample
+##COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
+allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+locationIDs = allStarDR14['LOCATION_ID']
+apogeeIDs = allStarDR14['APOGEE_ID']
+apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+
+#Comment the above 4 lines, and uncomment the next three lines if you want to run the analysis only on the training sample
 #apogeeIDs = apoID
 #locationIDs = locID
+#fileToWrite = 'TrainingSet_StatsCatalog.csv'
+
 
 binApoID = []
 binLocID = []
@@ -141,11 +150,6 @@ apo= []
 # setenv SDSS_LOCAL_SAS_MIRROR "/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14"  
 # setenv RESULTS_VERS "l31c.2"
 
-#COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
-allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
-locationIDs = allStarDR14['LOCATION_ID']
-apogeeIDs = allStarDR14['APOGEE_ID']
-apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 for j in range(len(locationIDs)):
@@ -176,8 +180,8 @@ for j in range(len(locationIDs)):
                     HJD = HDU0['HJD'+str(visit+1)]
                     nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
 
-#keep kevin's old code as a safety blanket.
-'''
+                    #keep kevin's old code as a safety blanket.
+                    '''
                     if nonzeroes >= 1:
                         loc.append(locationID)
                         apo.append(apogeeID)
@@ -219,7 +223,7 @@ for j in range(len(locationIDs)):
                     else:
                         pass
 
-'''
+                    '''
 
                 #Apply SNR cut to eliminate targets < 10.
                     if snr > 10:
@@ -308,9 +312,6 @@ df['log(R151/R101)'] = newR1
 df['log(R101/R51)'] = newR2
 df['log(Peak_value)'] = peak_val
 
-#save output for main DR14 catalog
-df.to_csv('DR14StatsCatalog.csv')
-
-#Option for saving output for just the training set stars
-#df.to_csv('TrainingSet_StatsCatalog.csv')
-     
+#save output 
+df.to_csv(fileToWrite)
+    

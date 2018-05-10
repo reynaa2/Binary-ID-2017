@@ -215,7 +215,9 @@ dr14_R151 = np.asarray(data['log(R151)'])
 dr14_ratio1 = np.asarray(data['log(Ratio1)'])
 dr14_ratio2 = np.asarray(data['log(Ratio2)'])
 dr14_xr = np.asarray(data['log(xr)'])
-dr14_peak_value = np.asarray(data['Peak_value'])'''
+dr14_peak_value = np.asarray(data['Peak_value'])
+
+'''
 
 # #Read in the training set binaries 
 # filepath = 'TrainingSet_Binary_Stats.csv'
