@@ -66,7 +66,6 @@ def matches(parameter,apogeeID,locationID,switch):
     return match_param_array,match_apogeeid,match_locationid
     
 
-
 '''
 def matches(xx,y,r51,r101,r151,xr,R1,R2,peak_val):
    # Generate empty lists to hold values of matched APOGEE IDs
@@ -152,6 +151,7 @@ DR14Stats = 'DR14StatsCatalog.csv'
 locationid, apogeeid, visits, snr, R51, R101, R151, xranges, ratio1, ratio2, peak_value = unpack_trim(DR14Stats, SNRscreen) 
 
 data_dr14 = pd.read_csv(filepath2)
+# Read in columns of data we want for the function "matches"
 locationid = data_dr14['LocationID']
 apogeeid = data_dr14['ApogeeID']
 visits = np.asarray(data_dr14['Visit'])
@@ -205,6 +205,8 @@ df.to_csv('DR14_SmallR_LargeXR.csv')
 #Read in the file that contains the smallest R, R ratios, and the largest max x-range. (called DR14_SmallR_LargeXR.csv )
 MainResults = 'DR14_SmallR_LargeXR.csv'
 data = pd.read_csv(MainResults)
+
+
 dr14_locationid = np.asarray(data['LocationID'])
 dr14_apogeeid = np.asarray(data['ApogeeID'])
 dr14_R51 = np.asarray(data['log(R51)'])
@@ -213,7 +215,56 @@ dr14_R151 = np.asarray(data['log(R151)'])
 dr14_ratio1 = np.asarray(data['log(Ratio1)'])
 dr14_ratio2 = np.asarray(data['log(Ratio2)'])
 dr14_xr = np.asarray(data['log(xr)'])
-dr14_peak_value = np.asarray(data['Peak_value'])
+dr14_peak_value = np.asarray(data['Peak_value'])'''
+
+# #Read in the training set binaries 
+# filepath = 'TrainingSet_Binary_Stats.csv'
+# openfile = pd.read_csv(filepath)
+# bin_locID = openfile['LocationID']
+# bin_apoID = openfile['ApogeeID']
+# bin_R51 = np.asarray(openfile['log(R51)'])
+# bin_R101 = np.asarray(openfile['log(R101)'])
+# bin_R151 = np.asarray(openfile['log(R151)'])
+# bin_XRange = np.asarray(openfile['log(xr)'])
+# bin_Ratio1 = np.asarray(openfile['log(Ratio1)'])
+# bin_Ratio2 = np.asarray(openfile['log(Ratio2)'])
+# bin_snr = np.asarray(openfile['SNR'])
+# bin_visit = np.asarray(openfile['Visit'])
+# bin_peakval = np.asarray(openfile['Peak_value'])
+
+# #Send these through the 'matches' function to retrieve the smallest R, R ratios, and maximum x-range
+# #Send parameters to function "matches"
+# tsb = matches(bin_R51,bin_apoID,bin_locID,0)
+# tsb_locationid = tsb[2]
+# tsb_apogeeid = tsb[1]
+# tsb_R51 = tsb[0]
+# tsbr101 = matches(bin_R101,bin_apoID,bin_locID,0)
+# tsb_R101= tsbr101[0]
+# tsbr151 = matches(bin_R151,bin_apoID,bin_locID,0)
+# tsb_R151 = tsbr151[0]
+# tsbxr = matches(bin_XRange,bin_apoID,bin_locID,1)
+# tsb_xr = tsbxr[0]
+# tsbratio_1 = matches(bin_Ratio1,bin_apoID,bin_locID,0)
+# tsb_R1 = tsbratio_1[0]
+# tsbratio_2 = matches(bin_Ratio2,bin_apoID,bin_locID,0)
+# tsb_R2 = tsbratio_2[0]
+# tsbpeaks = matches(bin_peakval,bin_apoID,bin_locID,0)
+# tsb_peakval = tsbpeaks[0]
+
+# #Construct a .csv file to hold smallest R, R ratios, and max x-ranges for training set binaries
+# cols = ['LocationID', 'ApogeeID']
+# df = pd.DataFrame(columns = cols)
+# df['LocationID'] = tsb_locationid
+# df['ApogeeID'] = tsb_apogeeid
+# #add HJD info to output table
+# df['log(R51)'] = tsb_R51
+# df['log(R101)'] = tsb_R101
+# df['log(R151)'] = tsb_R151
+# df['log(xr)'] = tsb_xr
+# df['log($R_{151}/ R_{101}$)'] = tsb_R1
+# df['log($R_{101}/R_{51}$)'] = tsb_R2
+# df['Peak_value'] = tsb_peakval
+# df.to_csv('TrainingSet_SmallR_LargeXR.csv')
 
 #Read in the training set binaries 
 TrainingSetResults = 'TrainingSet_SmallR_LargeXR.csv'
@@ -251,6 +302,7 @@ tsbpeaks = matches(bin_peakval,bin_apoID,bin_locID)
 tsb_peakval = tsbpeaks[2]
 '''
 
+'''
 #Generate histograms to find the number of most densely populated region
 # XR vs R101
 plt.figure(figsize=(8,8))

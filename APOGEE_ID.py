@@ -8,6 +8,7 @@ from astropy.io import fits
 import os.path
 from pathlib import Path
 
+
 #Calculate R-Values for given ranges
 def calcR(x,pm):
     ccfCenter = max(x)
@@ -74,10 +75,9 @@ def bisector(xccf,yccf):
         x_bisector.append(x_3)
 
         bisector_pts = np.vstack([x_bisector,y_bisector])
-        #print(bisector_pts)
         return(bisector_pts)
 
-def xrange(x_bisector):
+def xrangee(x_bisector):
     xr = max(x_bisector) - min(x_bisector)
     xR = abs(xr)
     return xR
@@ -89,25 +89,8 @@ def r_ratio(r51,r151,r101):
         r2_ratio = r101/r51
         R1_ratio = math.log10(r1_ratio)
         R2_ratio = math.log10(r2_ratio)
-        ratios = [round(R1_ratio,4),round(R2_ratio,4)]
+        ratios = [round(R1_ratio,6),round(R2_ratio,6)]
         return ratios
-
-def idSB2s(R1_ratio, R2_ratio,r51,r151,r101,xr): # cuts to identify SB2s from Kevin's IDL Routine
-    min_r51 = r51
-    min_r101 = r101
-    min_r151 = r151
-    r1_ratio = R1_ratio
-    r2_ratio = R2_ratio
-    max_xr = xr
-    
-    likely_sb2s = np.where((math.log10(r1_ratio) > 0.06 and (math.log10(r1_ratio) < 0.13 and 
-                            math.log10(min_r101) < 0.83)) or (math.log10(r2_ratio) > 0.05 and 
-                            math.log10(r2_ratio) < 0.02 and math.log10(min_r51) < 0.83) and
-                            math.log10(min_r51) > 0.25 and math.log10(min_r101) > 0.22 and
-                            math.log10(peak_401) > -0.5 and math.log10(max_xr) < 2.3 and 
-                            math.log10(max_xr) > 0.7
-                          )
-    return likely_sb2s
 
 #Turn lists into arrays and then log arrays
 def arrays(x):
@@ -165,11 +148,11 @@ apogeeIDs = allStarDR14['APOGEE_ID']
 apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
-#for j in range(len(locationIDs)):
 for j in range(len(locationIDs)):
         #print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
+        print(j)
         #File path to open .fits 
         my_file = Path('/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
@@ -192,6 +175,9 @@ for j in range(len(locationIDs)):
                     #read in HJD identifier to more uniquely identify individual visits
                     HJD = HDU0['HJD'+str(visit+1)]
                     nonzeroes = np.count_nonzero(ccf) # This condition is meant to eliminate visits that are empty
+
+#keep kevin's old code as a safety blanket.
+'''
                     if nonzeroes >= 1:
                         loc.append(locationID)
                         apo.append(apogeeID)
@@ -200,7 +186,7 @@ for j in range(len(locationIDs)):
                         x_bs = bs_pt[0]
                         y_bs = bs_pt[1]
                         #x_range = xrange(bs_pt[0])
-                        x_range = xrange(x_bs)
+                        x_range = xrangee(x_bs)
                         #Plotting CCFs
                         #plt.plot(xccf,ccf, label='Visit: '+str(visit))
                         #plt.plot(x_bs,y_bs,'o')
@@ -233,27 +219,66 @@ for j in range(len(locationIDs)):
                     else:
                         pass
 
+'''
+
+                #Apply SNR cut to eliminate targets < 10.
+                    if snr > 10:
+                        if nonzeroes >= 1:
+                            loc.append(locationID)
+                            apo.append(apogeeID)
+                            bs_pt = bisector(xccf, ccf)
+                            #split up 2D array to get x and y coord. for bisector pts
+                            x_bs = bs_pt[0]
+                            y_bs = bs_pt[1]
+                            x_range = xrangee(x_bs)
+                            #Plotting CCFs
+                            #plt.plot(xccf,ccf, label='Visit: '+str(visit))
+                            #plt.plot(x_bs,y_bs,'o')
+                            #plt.legend(loc='upper right')
+                            #plt.show()
+                            xr.append(x_range)
+                            SNR.append(snr) 
+                            R151 = calcR(ccf,75)
+                            partr151 = R151[1]
+                            R101 = calcR(ccf,50)
+                            R51 = calcR(ccf,25)
+                            #Ensure 4 decimal places reported in .csv
+                            oldR151.append(round(R151[0],4))
+                            oldR101.append(round(R101[0],4))
+                            oldR51.append(round(R51[0],4))
+                            #Add to list of CCF peak Values
+                            peak_value.append(partr151)
+                            #Generate the Ratios 
+                            Ratios = r_ratio(R51[0],R151[0],R101[0])
+                            r1 = Ratios[0]
+                            r2 = Ratios[1]
+                            R1.append(r1)
+                            R2.append(r2)
+                            Visit.append(visit)
+                            #store HJDs in an array
+                            HJDs.append(HJD)
+
+                        else:
+                            pass
         except FileNotFoundError:
             print('oops -- no file!')
             print('file #',j,path)
             pass
 
-#Find and replace all nan values with 9 which will be prominent in log space
-x_ranges = [9 if math.isnan(x) else x for x in xr]
-Xranges = [9 if math.isinf(y) else y for y in x_ranges]
+#Find and replace all nan values with 10000 which will be prominent in log space as 4
+x_ranges = [10000 if math.isnan(x) else x for x in xr]
+# Replace all -inf values with an outlier # which we will assign to be 10000 and then 4 in log space
+newer_xr = [10000 if math.isinf(y) else y for y in x_ranges]
+# Replace all 0 values with an outlier # which we will assign to be 1000 and then 3 in log space
+#(using a different number here so that xr=0 can be distinguished from truly bad data [xr = inf and xr = nan])
+new_xr = [1000 if z == 0 else z for z in newer_xr]
 
 #Have DR14 sent to arrays function that also convert arrays into log space
 newR51 = arrays(oldR51)
 newR101 = arrays(oldR101)
 newR151 = arrays(oldR151)
-#BinR1 = arrays(binR1)
-#BinR2 = arrays(binR2)
-new_Xrange = arrays(Xranges)
+new_Xrange = arrays(new_xr)
 peak_val = arrays(peak_value)
-
-#Find and replace all nan values with 9 which will be prominent in log space
-#x_ranges = [9 if math.isnan(x) else x for x in Xrange]
-#new_Xranges = [9 if math.isinf(y) else y for y in x_ranges]
 
 #Convert snr into an array for panda writing
 SNRs = np.array(SNR)
@@ -264,25 +289,6 @@ RatioR1 = np.array(R1)
 RatioR2 = np.array(R2)
 newR1 = RatioR1.astype(np.float)
 newR2 = RatioR2.astype(np.float)
-
-#Check the lengths of the arrays now that we have extracted undesired values
-#print('The R values: ')
-#print(len(newR51))
-#print(len(newR101))
-#print(len(newR151))
-#print('The other params: ')
-#print(len(new_Xranges))
-#print(len(SNRS))
-#print(len(newR1))
-#print(len(newR2))
-#print(len(peak_val))
-
-
-#Make the nan a big value (resolved!)
-#Run on all DR14 (with new format for HJD)
-#Push to GitHub -> DR14 (Resolved!)
-#Move to updating the script to impliment the cuts which needs to read in HJD (Resolved!)
-#Look at plots for sanity check (Resolved!)
 
 #Write out the results to a file via pandas
 cols = ['LocationID', 'ApogeeID']
@@ -298,10 +304,9 @@ df['log(R51)'] = newR51
 df['log(R101)'] = newR101
 df['log(R151)'] = newR151
 df['log(xr)'] = new_Xrange
-df['log(Ratio1)'] = newR1
-df['log(Ratio2)'] = newR2
-df['Peak_value'] = peak_val
-
+df['log(R151/R101)'] = newR1
+df['log(R101/R51)'] = newR2
+df['log(Peak_value)'] = peak_val
 
 #save output for main DR14 catalog
 df.to_csv('DR14StatsCatalog.csv')
