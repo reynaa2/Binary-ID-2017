@@ -123,8 +123,8 @@ apoID = bins['Apogee_ID']
 ids = bins['ID']
 
 #include options for running the analysis only on the training sample
-apogeeIDs = apoID
-locationIDs = locID
+#apogeeIDs = apoID
+#locationIDs = locID
 
 binApoID = []
 binLocID = []
@@ -159,10 +159,10 @@ apo= []
 # setenv RESULTS_VERS "l31c.2"
 
 #COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
-#allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
-#locationIDs = allStarDR14['LOCATION_ID']
-#apogeeIDs = allStarDR14['APOGEE_ID']
-#apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
+allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
+locationIDs = allStarDR14['LOCATION_ID']
+apogeeIDs = allStarDR14['APOGEE_ID']
+apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Run routine on DR14 to find R values, R ratios, x-ranges and HJDs
 #for j in range(len(locationIDs)):
@@ -174,6 +174,8 @@ for j in range(len(locationIDs)):
         my_file = Path('/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
             path = '/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
+
+            print(apogeeID)
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF
@@ -205,6 +207,8 @@ for j in range(len(locationIDs)):
                         #plt.legend(loc='upper right')
                         #plt.show()
                         xr.append(x_range)
+                        #print(x_range)
+                        #print(xr[visit])
                         SNR.append(snr) 
                         R151 = calcR(ccf,75)
                         partr151 = R151[1]
@@ -300,8 +304,8 @@ df['Peak_value'] = peak_val
 
 
 #save output for main DR14 catalog
-#df.to_csv('DR14StatsCatalog.csv')
+df.to_csv('DR14StatsCatalog.csv')
 
 #Option for saving output for just the training set stars
-df.to_csv('TrainingSet_StatsCatalog.csv')
+#df.to_csv('TrainingSet_StatsCatalog.csv')
      
