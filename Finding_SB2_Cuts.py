@@ -48,7 +48,7 @@ def js_cuts(apogeeid, locationid,R51,R101,R_ratio1,R_ratio2,max_xrange,peak):
     for i in range(len(R51)):
         if (R101[i] < 0.83 and 0.06 < R_ratio1[i] < 0.13) or (R51[i] < 0.83 and 0.05 < R_ratio2[i] < 0.2):
             if peak[i] > -0.5:
-                #if max_xrange[i] > 2.3:
+                #if max_xrange[i] > 2.3:   <----- comment out to make different from Jessica's selection?
                 if R51[i] > 0.25:
                     if R101[i] > 0.22:
                         sb2_locationid.append(locationid[i])

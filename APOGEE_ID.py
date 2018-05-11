@@ -104,7 +104,7 @@ bins = pd.read_csv('KC_Binaries.csv',delimiter='\t')
 locID = bins['Location_ID']
 apoID = bins['Apogee_ID']
 ids = bins['ID']
-fileToWrite = 'DR14StatsCatalog.csv'
+fileToWrite = 'DR14_StatsCatalog.csv'
 
 ##COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
 allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
@@ -116,7 +116,7 @@ apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 #apogeeIDs = apoID
 #locationIDs = locID
 #fileToWrite = 'TrainingSet_StatsCatalog.csv'
-
+#### NEEED TO EDIT THE ABOVE SO THAT NON-BINARIES (ie, ids == 0) GET FILTERED OUT!!!)
 
 binApoID = []
 binLocID = []
