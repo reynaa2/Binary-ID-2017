@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pandas as pd
 
-def twod_hist(x,y,a,b,title,xlabel,ylabel,c,d,e,f):
+def twod_hist(x,y,a,b,tsb_x,tsb_y,title,xlabel,ylabel):#,c,d,e,f):
     # x = x parameter
     # y = y parameter
     # a = comparison x parameter
@@ -14,15 +14,16 @@ def twod_hist(x,y,a,b,title,xlabel,ylabel,c,d,e,f):
     xlabel = str(xlabel)
     ylabel = str(ylabel)
     plt.figure(figsize=(8,8))
-    plt.hist2d(x,y,bins=(60,60),normed=True,cmap=plt.cm.PuBu)
+    plt.hist2d(x,y,bins=(80,80),normed=True,cmap=plt.cm.PuBu)
     cb = plt.colorbar()
     cb.set_label('Counts in Bin')
-    plt.scatter(a,b,s=8,marker = '^',facecolor='None',edgecolor='red',label='Training Set Binaries')
+    plt.scatter(a,b,s=8,marker = '^',facecolor='None',edgecolor='orange',label='Binaries from JMR Cuts')
+    plt.scatter(tsb_x, tsb_y,s=4,label='Training Set Binaries')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.legend(loc='lower right')
-    plt.ylim(c,d)
-    plt.xlim(e,f)
+    # plt.ylim(c,d)
+    # plt.xlim(e,f)
     # Use a rectangle to highlight the region of interest for population comparisions
     # fc = facecolor of the rectangle, ec = edge color of the rectangle
     # j and k are the coordinates of the bottom left point of the rectangle. The shape builds from this pt
@@ -48,17 +49,17 @@ def js_cuts(apogeeid, locationid,R51,R101,R_ratio1,R_ratio2,max_xrange,peak):
     for i in range(len(R51)):
         if (R101[i] < 0.83 and 0.06 < R_ratio1[i] < 0.13) or (R51[i] < 0.83 and 0.05 < R_ratio2[i] < 0.2):
             if peak[i] > -0.5:
-                #if max_xrange[i] > 2.3:
-                if R51[i] > 0.25:
-                    if R101[i] > 0.22:
-                        sb2_locationid.append(locationid[i])
-                        sb2_apogeeid.append(apogeeid[i])
-                        sb2_minR51.append(R51[i])
-                        sb2_minR101.append(R101[i])
-                        sb2_minR_ratio1.append(R_ratio1[i])
-                        sb2_minR_ratio2.append(R_ratio2[i])
-                        sb2_maxXR.append(max_xrange[i])
-                        sb2_peak.append(peak[i])
+                if -0.7 < max_xrange[i] < 2.3:
+                    if R51[i] > 0.25:
+                        if R101[i] > 0.22: 
+                            sb2_locationid.append(locationid[i])
+                            sb2_apogeeid.append(apogeeid[i])
+                            sb2_minR51.append(R51[i])
+                            sb2_minR101.append(R101[i])
+                            sb2_minR_ratio1.append(R_ratio1[i])
+                            sb2_minR_ratio2.append(R_ratio2[i])
+                            sb2_maxXR.append(max_xrange[i])
+                            sb2_peak.append(peak[i])
     return sb2_locationid, sb2_apogeeid, sb2_minR51, sb2_minR101, sb2_minR_ratio1, sb2_minR_ratio2, sb2_maxXR, sb2_peak
 
 # Function for by-eye cuts of the non-conservative bounaries
@@ -127,6 +128,15 @@ def matches(x,y,z,a):#,b,c):
 dr14_locationid,dr14_apogeeid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR, dr14_peak = read_csvfile('DR14_SmallR_LargeXR_Revised.csv','LocationID','ApogeeID','log(R51)','log(R101)',
   'log(R151)','log(R151/R101)','log(R101/R51)','log(xr)','log(Peak_value)')
 
+DR14_apogeeid = np.copy(dr14_locationid)
+DR14_locationID = np.copy(dr14_apogeeid)
+DR14_minR51 = np.copy(dr14_minr51)
+DR14_minR101 = np.copy(dr14_minr101)
+DR14_minR151 = np.copy(dr14_minr151)
+DR14_minRatio1 = np.copy(dr14_minratio1)
+DR14_minRatio2 = np.copy(dr14_minratio2)
+DR14_MaxXR = np.copy(dr14_maxXR)
+
 # Read in the DR14 catalog of min R, min R rations, and max x-range
 # All quantities are in log space
 tsb_locationid,tsb_apogeeid, tsb_minr51, tsb_minr101, tsb_minr151, tsb_minratio1, tsb_minratio2, tsb_maxXR, tsb_peak = read_csvfile('TrainingSet_SmallR_LargeXR.csv','LocationID','ApogeeID','log(R51)','log(R101)',
@@ -165,18 +175,155 @@ jsCut_match_apogeeid, jsCut_match_locationid = matches(jsCuts_apogeeid, tsb_apog
 print(len(jsCut_match_apogeeid)) # 89/ 1025 training set stars identified
 
 # Report these stars in a csv file
-def csv_writer(filename,header1,header2,x,y,delimiter_choice):
+def csv_writer(filename,header1,header2,header3,header4,header5,header6,header7,x,y,w,v,u,t,s,delimiter_choice):
     cols = [header1, header2]
     # Construct dataframe to store variable data
     dataframe = pd.DataFrame(columns=cols)
-    dataframe[header1] = x
-    dataframe[header2] = y
-    # Turn dataframe to csv file
+    dataframe[header1] = x # Location ID
+    dataframe[header2] = y # Apogee ID
+    dataframe[header3] = w # min R51 (in log space)
+    dataframe[header4] = v # min R101 (in log space)
+    dataframe[header5] = u # min R151/R101 (in log space)
+    dataframe[header6] = t # min R101/R51 (in log space)
+    dataframe[header7] = s # max xrange (in log space)
     dataframe.to_csv(filename,sep=delimiter_choice,index_label=False)
     return
 
 # Stars from JMR cuts
-jmr_cut_file = csv_writer('JMR_Cuts.csv','LocationID', 'ApogeeID',jmr_locationid, jmr_apogeeid,'\t')
+jmr_cut_file = csv_writer('JMR_Cuts_RecentRevision.csv','LocationID', 'ApogeeID','min_log(R51)','min_log(R101)','min_log(R151/R101)','min_log(R101/R51)','max_log(xr)',jmr_locationid, jmr_apogeeid,jmr_minR51, jmr_minR101, jmr_minR_ratio1, jmr_minR_ratio2, jmr_maxXR,',')
 
 # Stars from JS cuts
-js_cut_file = csv_writer('JS_Cuts.csv','LocationID', 'ApogeeID',jsCuts_locationid, jsCuts_apogeeid,'\t')
+js_cut_file = csv_writer('JS_Cuts_RecentRevision.csv','LocationID', 'ApogeeID','min_log(R51)','min_log(R101)','min_log(R151/R101)','min_log(R101/R51)','max_log(xr)',jsCuts_locationid, jsCuts_apogeeid,jsCuts_minR51, jsCuts_minR101, jsCuts_minR_ratio1, jsCuts_minR_ratio2, jsCuts_maxXR,',')
+
+
+# Generate 2d histograms of  JMR cuts
+# jmr_visualCuts = twod_hist(DR14_minR101, DR14_minRatio1, jmr_minR101, jmr_minR_ratio1,tsb_minr101,tsb_minratio1,'$R_{101}$ vs $R_{151}/R_{101}$','min $log(R_{101})$', 'min $log(R_{151}/R_{101})$')#,10,10,10,10)
+
+
+#### PLOTTING RESULTS ######
+# Use corner to make population maps: This one is for R101 vs R151/R101
+import corner
+# plt.figure(figsize=(8,8))
+# title = '$R_{101}$ vs $R_{151}/R_{101}$'
+# xlabel = 'min log($R_{101}$)'
+# ylabel = 'min log($R_{151}/R_{101}$)'
+# corner.hist2d(DR14_minR101, DR14_minRatio1,bins=500,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True)
+# plt.scatter(jmr_minR101,jmr_minR_ratio1,color='orange',alpha=0.6,s=6,label='Binaries from JMR Cuts')#,marker = '^',facecolor='None',edgecolor='orange',label='Binaries from JMR Cuts')
+# plt.scatter(tsb_minr101, tsb_minratio1,s=6,color='blue',alpha=0.6,label='Training Set Binaries')
+# plt.xlabel(xlabel,fontsize=18)
+# plt.ylabel(ylabel,fontsize=18)
+# # plt.title(title,fontsize=18)
+# plt.axvline(x=0.29) # plot vertical line at 0.29
+# plt.axvline(x=1.15) # plot vertical line at 1.04
+# plt.axhline(y=-0.2) # plot horizontal line at -0.02
+# plt.axhline(y=1.2) # plot horizontal line at 0.9
+# plt.xlim(0,1.5)
+# plt.ylim(-0.8,0.1)
+# plt.legend(loc='lower right',fontsize=18)
+# plt.savefig('JMR_vs_TSB(R101_v_Ratio1).pdf',dpi=800)
+# plt.show()
+
+# # Use corner to make population maps: This one is for R101 vs R151/R101 for JS
+# plt.figure(figsize=(8,8))
+# title = '$R_{101}$ vs $R_{151}/R_{101}$'
+# xlabel = 'min log($R_{101}$)'
+# ylabel = 'min log($R_{151}/R_{101}$)'
+# corner.hist2d(DR14_minR101, DR14_minRatio1,bins=500,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True)
+# plt.scatter(jsCuts_minR101, jsCuts_minR_ratio1, s=6,color='red',label='Binaries from JS Cuts')
+# plt.scatter(tsb_minr101, tsb_minratio1,s=6,color='blue',alpha=0.6,label='Training Set Binaries')
+# plt.xlabel(xlabel,fontsize=14)
+# plt.ylabel(ylabel,fontsize=14)
+# plt.title(title,fontsize=18)
+# plt.axvline(x=0.83) # plot vertical line at 0.83
+# plt.axhline(y=0.13) # plot horizontal line at 0.13
+# plt.axhline(y=0.06) # plot horizontal line at 0.06
+# plt.xlim(0,2.0)
+# plt.ylim(-0.8,0.1)
+# plt.legend(loc='lower right',fontsize=13)
+# plt.savefig('JS_vs_TSB(R101 vs Ratio1).pdf',dpi=800)
+# plt.show()
+
+# Use corner to make population maps: This one is for R51 vs R101/R51 (JMR Cut)
+plt.figure(figsize=(8,8))
+title = '$R_{51}$ vs $R_{101}/R_{51}$ for JMR Cuts'
+xlabel = 'min log($R_{51}$)'
+ylabel = 'min log($R_{101}/R_{51}$)'
+corner.hist2d(DR14_minR51, DR14_minRatio2,bins=500,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True)
+# plt.scatter(jmr_minR51,jmr_minR_ratio2,color='orange',alpha=0.6,s=6,label='Binaries from JMR Cuts')#,marker = '^',facecolor='None',edgecolor='orange',label='Binaries from JMR Cuts')
+# plt.scatter(jsCuts_minR51, jsCuts_minR_ratio2, s=6,color='purple',label='Binaries from JS Cuts')
+plt.scatter(tsb_minr51, tsb_minratio2,s=6,color='red',alpha=0.6,label='Training Set Binaries')
+plt.xlabel(xlabel,fontsize=18)
+plt.ylabel(ylabel,fontsize=18)
+# plt.title(title,fontsize=18)
+plt.axvline(x=0.25) # plot vertical line at 0.25
+plt.axvline(x=1.05) # plot vertical line at 1.0
+plt.axhline(y=-0.77) # plot horizontal line at -0.77
+plt.axhline(y=0.15) # plot horizontal line at 0.13
+# plt.xlim(0,1.5)
+plt.ylim(-1.4,0.2)
+plt.legend(loc='lower right',fontsize=20)
+plt.savefig('JMR_vs_TSB(R51 vs Ratio2).pdf',dpi=800)
+# plt.show()
+
+# Use corner to make population maps: R 51 vs R101/R51 for JS Cuts
+# plt.figure(figsize=(8,8))
+# title = '$R_{51}$ vs $R_{101}/R_{51}$ for JS Cuts'
+# xlabel = 'min log($R_{51}$)'
+# ylabel = 'min log($R_{101}/R_{51}$)'
+# corner.hist2d(DR14_minR51, DR14_minRatio2,bins=500,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True)
+# # plt.scatter(jsCuts_minR51, jsCuts_minR_ratio2, s=6,color='red',label='Binaries from JS Cuts')
+# plt.scatter(tsb_minr51, tsb_minratio2,s=6,color='blue',alpha=0.6,label='Training Set Binaries')
+# plt.xlabel(xlabel,fontsize=14)
+# plt.ylabel(ylabel,fontsize=14)
+# plt.title(title,fontsize=18)
+# plt.axvline(x=0.83) # plot vertical line at 0.83
+# plt.axhline(y=0.05) # plot horizontal line at 0.05
+# plt.axhline(y=0.2) # plot horizontal line at 0.2
+# plt.xlim(0,2.0)
+# plt.ylim(-1.4,0.2)
+# plt.legend(loc='lower right',fontsize=13)
+# plt.savefig('JS_vs_TSB(R51 vs Ratio2).pdf',dpi=800)
+# plt.show()
+
+# # Use corner to make histogram for XR vs R151/R101 for JMR Cuts
+# plt.figure(figsize=(8,8))
+# title = 'x-range vs $R_{101}$ for JMR Cuts'
+# xlabel = 'max log(xrange)'
+# ylabel = 'min log($R_{101}$)'
+# corner.hist2d(dr14_maxXR, dr14_minr101,bins=50,plt_contours=True,fill_contours=True,smooth=1.2,plot_datapoints=True)
+# plt.scatter(jmr_maxXR,jmr_minR101,color='orange',alpha=0.6,s=6,label='Binaries from JMR Cuts')#,marker = '^',facecolor='None',edgecolor='orange',label='Binaries from JMR Cuts')
+# plt.scatter(tsb_maxXR, tsb_minr101,s=6,color='blue',alpha=0.6,label='Training Set Binaries')
+# plt.xlabel(xlabel,fontsize=18)
+# plt.ylabel(ylabel,fontsize=18)
+# # plt.title(title,fontsize=18)
+# plt.axvline(x= 0.5) 
+# plt.axvline(x= 1.8) 
+# plt.axhline(y= 0.25) 
+# plt.axhline(y= 1.15) 
+# # plt.xlim(-0.2,2.0)
+# # plt.ylim(-1.4,0.22)
+# plt.legend(loc='upper left',fontsize=20)
+# plt.savefig('JMR_vs_TSB(XR vs R101).pdf',dpi=800)
+# plt.show()
+
+
+# # # Use corner to make histogram of xr vs ratio 2 for JMR Cuts
+# plt.figure(figsize=(8,8))
+# title = 'x-range vs $R_{151}/R_{101}$ for JS Cuts'
+# xlabel = 'max log(xrange)'
+# ylabel = 'min log($R_{151}/R_{101}$)'
+# corner.hist2d(dr14_maxXR, dr14_minratio1,bins=100,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True)
+# plt.scatter(jmr_maxXR, jmr_minR_ratio2, s=6,color='orange',label='Binaries from JMR Cuts')
+# plt.scatter(tsb_maxXR, tsb_minratio1,s=6,color='blue',alpha=0.6,label='Training Set Binaries')
+# plt.xlabel(xlabel,fontsize=18)
+# plt.ylabel(ylabel,fontsize=18)
+# # plt.title(title,fontsize=18)
+# plt.axvline(x=0.45) 
+# plt.axvline(x=1.75) 
+# plt.axhline(y=-1.1) 
+# plt.axhline(y=0.15) 
+# # plt.xlim(0,1.5)
+# plt.ylim(-1.4,0.1)
+# plt.legend(loc='lower right',fontsize=18)
+# plt.savefig('JMR_vs_TSB(XR vs Ratio2).pdf',dpi=800)
+# plt.show()
