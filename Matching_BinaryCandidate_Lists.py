@@ -4,6 +4,41 @@ import pandas as pd
 import corner
 
 # Find the number of apogee IDs that are in both Kevin's gaia candidates, my candidates, and ML's list
+# def matches(x,y,z,a,b,c,binpercent,ID1, ID2, ID3):
+    # # x = biggest list of candidates apogee id
+    # # y = 2nd largest list of candidates apogee id
+    # # z = smallest list of candidates apogee id
+    # # a = biggest location id
+    # # b = 2nd biggest location id
+    # # c = smallest location id 
+    # match_locationID = []
+    # match_apogeeID = []
+    # match_identifier = []
+    # match_id2 = []
+    # percent = []
+    # x = np.asarray(x) # array of strings
+    # y = np.asarray(y)
+    # z = np.asarray(z)
+    # for i in range(len(z)): # only allow the smaller list length
+    #     if z[i] in x:
+    #         match_locationID.append(c[i])
+    #         match_apogeeID.append(z[i])
+    #         match_identifier.append(ID1[i])
+    #         match_id2.append(ID2[i])
+    #         percent.append(binpercent[i])
+    #         # if ID1[i] != ID2[i] or ID1[i] != ID3[i]:
+    #         #     match_identifier.append(ID1[i])
+    #         # else:
+    #         #     match_identifier.append(ID2[i])
+    #     if z[i] in y:
+    #         print('I pass Gaia')
+    #         match_locationID.append(c[i])
+    #         match_apogeeID.append(z[i])
+    #         match_identifier.append(ID1[i])
+    #         match_id2.append(ID3[i])
+    #         percent.append(binpercent[i])
+    # return match_locationID, match_apogeeID, match_identifier, match_id2, percent
+
 def matches(x,y,z,a,b,c,binpercent,ID1, ID2, ID3):
     # x = biggest list of candidates apogee id
     # y = 2nd largest list of candidates apogee id
@@ -15,54 +50,27 @@ def matches(x,y,z,a,b,c,binpercent,ID1, ID2, ID3):
     match_apogeeID = []
     match_identifier = []
     match_id2 = []
+    # match_id3 = []
     percent = []
     x = np.asarray(x) # array of strings
     y = np.asarray(y)
     z = np.asarray(z)
-    print(binpercent)
-    for i in range(len(z)): # only allow the smaller list length
-        if z[i] in x:
+    for i in range(len(z)):
+        if z[i] in x and z[i] in y:
             match_locationID.append(c[i])
             match_apogeeID.append(z[i])
             match_identifier.append(ID1[i])
             match_id2.append(ID2[i])
+            # match_id3.append(ID3[i])
             percent.append(binpercent[i])
-            # if ID1[i] != ID2[i] or ID1[i] != ID3[i]:
-            #     match_identifier.append(ID1[i])
-            # else:
-            #     match_identifier.append(ID2[i])
-        
         if z[i] in y:
-            print('I pass Gaia')
-            match_locationID.append(c[i])
-            match_apogeeID.append(z[i])
-            match_identifier.append(ID1[i])
-            match_id2.append(ID3[i])
-            percent.append(binpercent[i])
+            
+
 
     return match_locationID, match_apogeeID, match_identifier, match_id2, percent
 
-# Function for generating 2D histograms with corner python package
-def hist_2d(name,x,y,a,b,gamma,zeta,n):
-    plt.figure(figsize=(8,8))
-    plt.grid(alpha=0.7)
-    if n ==1:
-        corner.hist2d(x,y,bins=400,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True) # histogram for matched objects
-        plt.savefig(name+'.pdf',dpi=700,bbox_to_inches='tight')
-        plt.show()
-    
-    if n != 1:
-        corner.hist2d(x,y,bins=400,plt_contours=True,fill_contours=True,smooth=1.,plot_datapoints=True) # histogram for matched objects
-        plt.scatter(a,b,color='red',alpha=0.5,label='JMR Stars')
-        plt.scatter(gamma,zeta,color='blue',alpha=0.5,label='Gaia Stars')
-        plt.savefig(name+'.pdf',dpi=700,bbox_to_inches='tight')
-        plt.show()
-    
-    return
-
 # Report candidate stars in a csv file
 def csv_writer(filename,header1,header2,header3,header4,header5,x,y,z,u,delimiter_choice):
-# def csv_writer(filename,header1,header2,header3,header4,header5,header6,header7,x,y,w,v,u,t,s,delimiter_choice):
     cols = [header1, header2]
     # Construct dataframe to store variable data
     dataframe = pd.DataFrame(columns=cols)
@@ -71,8 +79,6 @@ def csv_writer(filename,header1,header2,header3,header4,header5,x,y,z,u,delimite
     dataframe[header3] = z # Identified Method Tag (M, J, G)
     dataframe[header4] = 3 # Visual Identification Tag assumed to be 3 = binary ; 2 = possible binary ; 1 = Non-binary 
     dataframe[header5] = u # binary percentage from ML
-    # dataframe[header6] = t # min R101/R51 (in log space)
-    # dataframe[header7] = s # max xrange (in log space)
     dataframe.to_csv(filename,sep=delimiter_choice,index_label=False)
     return
 
@@ -121,17 +127,25 @@ for i in range(len(ml_apo)):
         binpercent.append(percent[i])
 
 # Read in Kevin's Gaia Binary Candidates via Pandas
-gaia_apogeeid = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[0])
-gaia_locationid = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[2])
-gaia_flag = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[3])
+# gaia_apogeeid = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[0])
+# gaia_locationid = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[2])
+# gaia_flag = pd.read_csv('binaries_from_gaia.tbl',header=None,delimiter='\t',usecols=[3])
+
+# Read in the new file that Kevin made of targets that match JMR cuts and Gaia method
+gaia_apogeeid = pd.read_table('binaries_from_gaia_and_Jessica.tbl',header=None, delim_whitespace=True,usecols=[0],dtype=str)
+gaia_locationid = pd.read_table('binaries_from_gaia_and_Jessica.tbl',header=None,delim_whitespace=True,usecols=[2],dtype=np.int32)
+# gaia_flag = pd.read_csv('binaries_from_gaia_and_Jessica.tbl',header=None,delim_whitespace=True,usecols=[3])
+gaia_apogeeid = gaia_apogeeid[0]
+gaia_locationid = gaia_locationid[2]
+
 # Give Gaia candidates an identifier of G
 gaia_id = ['G' for k in range(len(gaia_apogeeid))]
-
+# check the lengths of the lists
 print(len(ml_apogeeid), len(jmr_apogeeid), len(gaia_apogeeid))
 
 # Find the number of matched apogee IDs in Kevin's list, mine, and ML
 # match_locationid, match_apogeeid, match_ID = matches(ml_apogeeid, gaia_apogeeid, jmr_apogeeid, ml_locationid, gaia_locationid, jmr_locationid, id_ml, JMR_id, gaia_id)
-match_locationid, match_apogeeid, match_ID1, match_ID2, BinaryConfidence = matches(jmr_apogeeid, gaia_apogeeid, ml_apogeeid, jmr_locationid, gaia_locationid, ml_locationid, binpercent, id_ml, JMR_id, gaia_id)
+match_locationid, match_apogeeid, match_ID1, match_ID2, BinaryConfidence = matches(jmr_apogeeid, ml_apogeeid, gaia_apogeeid, jmr_locationid, ml_locationid, gaia_locationid, binpercent, id_ml, JMR_id, gaia_id)
 print(len(match_apogeeid))
 
 # Combine the matched ids into combo strings ie: JM if found by JMR Cut and ML method
