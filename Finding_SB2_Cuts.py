@@ -62,7 +62,7 @@ def js_cuts(apogeeid, locationid,R51,R101,R_ratio1,R_ratio2,max_xrange,peak):
                             sb2_peak.append(peak[i])
     return sb2_locationid, sb2_apogeeid, sb2_minR51, sb2_minR101, sb2_minR_ratio1, sb2_minR_ratio2, sb2_maxXR, sb2_peak
 
-# Function for by-eye cuts of the non-conservative bounaries
+# Function for by-eye cuts of the non-conservative bounaries: JESSICA'S CUTS!
 def visual_cuts(apogeeid, locationid,R51,R101,R151,R_ratio1,R_ratio2,max_xrange):
     # Define empty space for storing quantities that pass the SB2 cut-off
     sb2_locationid = []
@@ -76,7 +76,7 @@ def visual_cuts(apogeeid, locationid,R51,R101,R151,R_ratio1,R_ratio2,max_xrange)
     for i in range(len(R51)):
         if (0.29 < R101[i] < 0.95 and -0.02 < R_ratio1[i] < 0.9) or ( 0.25<R51[i]<1.0 and -0.77<R_ratio2[i]<0.13):
             if (0.35<max_xrange[i]<1.75 and -0.12<R_ratio2[i]<0.15) or (0.50<max_xrange[i]<1.75 and -0.2<R_ratio1[i]<0.9):
-                if (0.50 < max_xrange[i] < 1.75) and  (-0.2 < R_ratio1[i]<0.9 or 0.25<R101[i]<1.15):
+                if (0.50 < max_xrange[i] < 1.75) and  (-0.2 < R_ratio1[i]<0.9 or 0.25<R101[i]<1.15): # COMBINED OR STATEMENT! CHECK THAT THIS IS WORKING!
                         sb2_locationid.append(locationid[i])
                         sb2_apogeeid.append(apogeeid[i])
                         sb2_minR51.append(R51[i])
