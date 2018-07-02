@@ -124,7 +124,7 @@ def matches(x,y,z,a):#,b,c):
 ## --- ROUTINE BEGINS HERE ---- ##
 # Read in the training set catalog of min R, min R ratios, and max x-range.
 # All quantities are in log space
-dr14_locationid,dr14_apogeeid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR, dr14_peak = read_csvfile('DR14_SmallR_LargeXR_Revised.csv','LocationID','ApogeeID','log(R51)','log(R101)',
+dr14_locationid,dr14_apogeeid, dr14_minr51, dr14_minr101, dr14_minr151, dr14_minratio1, dr14_minratio2, dr14_maxXR, dr14_peak = read_csvfile('DR14_SmallR_LargeXR.csv','LocationID','ApogeeID','log(R51)','log(R101)',
   'log(R151)','log(R151/R101)','log(R101/R51)','log(xr)','log(Peak_value)')
 
 # Read in the DR14 catalog of min R, min R rations, and max x-range

@@ -106,6 +106,14 @@ apoID = bins['Apogee_ID']
 ids = bins['ID']
 fileToWrite = 'DR14_StatsCatalog.csv'
 
+#this piece is what ensures that the training set is limited to genuine binaries.
+binApoID = []
+binLocID = []
+for i in range(len(ids)):
+    if ids[i] != 0:
+        binApoID.append(apoID[i])
+        binLocID.append(locID[i])
+
 ##COMMANDS TO READ IN AND PROCESS FULL DR14 SAMPLE (sans commissioning data)
 allStarDR14 = apread.allStar(rmcommissioning=False,main=False,ak=True,akvers='targ',adddist=False)
 locationIDs = allStarDR14['LOCATION_ID']
@@ -113,17 +121,10 @@ apogeeIDs = allStarDR14['APOGEE_ID']
 apogeeIDs = [s.decode('utf-8') for s in apogeeIDs]
 
 #Comment the above 4 lines, and uncomment the next three lines if you want to run the analysis only on the training sample
-#apogeeIDs = apoID
-#locationIDs = locID
+#apogeeIDs = binApoID
+#locationIDs = binLocID
 #fileToWrite = 'TrainingSet_StatsCatalog.csv'
-#### NEEED TO EDIT THE ABOVE SO THAT NON-BINARIES (ie, ids == 0) GET FILTERED OUT!!!)
 
-binApoID = []
-binLocID = []
-for i in range(len(ids)):
-    if ids[i] != 0:
-        binApoID.append(apoID[i])
-        binLocID.append(locID[i])
 
 #Placed main routine in a function to compact space.
 #def main_routine(apogeeID,locationID):
@@ -156,13 +157,13 @@ for j in range(len(locationIDs)):
         #print(j)
         locationID = locationIDs[j]
         apogeeID = apogeeIDs[j]
-        print(j)
+        #print(j)
         #File path to open .fits 
         my_file = Path('/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits')
         try: 
             path = '/Volumes/CoveyData/APOGEE_Spectra/APOGEE2_DR14/dr14/apogee/spectro/redux/r8/stars/apo25m/'+str(locationID)+'/'+'apStar-r8-'+str(apogeeID)+'.fits'
 
-            print(apogeeID)
+            #print(apogeeID)
             data = fits.open(path)
             point = data[9]
             xccf = point.data[0][29] # Proper location of x values of the CCF

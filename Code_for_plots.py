@@ -136,7 +136,14 @@ def matches(xx,y,r51,r101,r151,xr,R1,R2,peak_val):
         tiny = min(pico)
         x6 = round(tiny,4)
         matchR2.append(x6)
-    return match51, match101, match151, matchxr,matchR1,matchR2, matchlocid,matchapoid,matchpeak'''
+    return match51, match101, match151, matchxr,matchR1,matchR2, matchlocid,matchapoid,matchpeak
+'''
+
+def matchup():
+#this function is intended to take in a csv file produced by APOGEE_ID.py, and then find the minimum r values and maximum x range,
+#and then write the result to a file that we can read in later.
+
+
 
 ## set value to use as threshold that a visit must clear before we consider its CCF stats
 SNRscreen = 20.
